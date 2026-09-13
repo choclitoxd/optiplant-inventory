@@ -1,0 +1,17 @@
+flowchart TD
+    Client((Navegador Web <br/> Cajero/Gerente))
+    
+    subgraph Docker_Compose_Net [Docker Internal Bridge Network: optiplant-net]
+        Frontend[Frontend Container<br/>React (TypeScript) / Nginx<br/>Expuesto: 3000]
+        Backend[Backend API Container<br/>Java Spring Boot<br/>Expuesto: 8080]
+        DB[(Database Container<br/>PostgreSQL 15+<br/>Interno: 5432)]
+    end
+    
+    Client -->|HTTP / JS Bundle| Frontend
+    Client -.->|REST API / JSON| Backend
+    
+    Frontend -->|Llamadas AJAX / Axios| Backend
+    Backend -->|TCP / JDBC / Hibernate Dialect| DB
+    
+    classDef container fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    class Frontend,Backend,DB container;

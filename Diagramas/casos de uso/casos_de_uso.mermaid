@@ -1,0 +1,31 @@
+%% Caso de Uso - Sistema de Inventario Multi‑Sucursal
+flowchart LR
+    %% Actores
+    Cajero((Cajero))
+    Gerente((Gerente de Sucursal))
+    Bodeguero((Bodeguero / Operador))
+
+    %% Casos de Uso agrupados
+    subgraph UC [Casos de Uso]
+        Vender([Registrar Venta Local])
+        Stock([Consultar Stock Disponible])
+        Comprar([Registrar Compra a Proveedor])
+        SolicitarT([Solicitar Transferencia])
+        DespacharT([Despachar Transferencia])
+        RecibirT([Recibir Transferencia Total/Parcial])
+        Dashboard([Visualizar Dashboard Analítico])
+    end
+
+    %% Relaciones
+    Cajero --> Vender
+    Cajero --> Stock
+
+    Gerente --> Vender
+    Gerente --> Stock
+    Gerente --> Comprar
+    Gerente --> SolicitarT
+    Gerente --> Dashboard
+
+    Bodeguero --> Stock
+    Bodeguero --> DespacharT
+    Bodeguero --> RecibirT

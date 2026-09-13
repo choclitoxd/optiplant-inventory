@@ -1,0 +1,27 @@
+stateDiagram-v2
+    [*] --> PENDING : Gerente solicita traslado
+    
+    PENDING --> SHIPPED : Bodeguero Origen despacha
+    note right of SHIPPED
+      Backend (@Transactional): 
+      - Descuenta stock en sucursal Origen
+      - Bloqueo pesimista evitado.
+    end note
+    
+    SHIPPED --> LLegadaDestino : Mercancía en tránsito
+    
+    state LLegadaDestino {
+        [*] --> Conteo_Fisico
+        Conteo_Fisico --> COMPLETED : Qty Real == Qty Enviada
+        Conteo_Fisico --> PARTIAL : Qty Real < Qty Enviada
+    }
+    
+    COMPLETED --> [*] : Aumenta stock Destino por total
+    
+    PARTIAL --> Registro_Merma
+    note left of Registro_Merma
+      Backend (@Transactional):
+      1. Aumenta stock Destino (Qty Real)
+      2. Inserta en 'inventory_adjustment' (Faltante)
+    end note
+    Registro_Merma --> [*] : Cierre de Transferencia
