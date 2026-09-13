@@ -33,3 +33,9 @@ logs
 # Docker
 .docker/
 docker-compose.override.yml
+
+# Agents
+.agents/
+skills-lock.json
+Guia_Skills.md
+*.pdf
