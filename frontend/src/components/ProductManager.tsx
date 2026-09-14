@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Product } from '../types';
+import type { Product } from '../types';
 import { ProductService } from '../services/api';
 
 export const ProductManager: React.FC = () => {

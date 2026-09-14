@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Branch, Inventory, Product } from '../types';
+import type { Branch, Inventory, Product } from '../types';
 import { BranchService, InventoryService, ProductService } from '../services/api';
 
 export const BranchStockView = () => {

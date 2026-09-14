@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Product, ProductRequest } from '../types';
+import type { Product, ProductRequest } from '../types';
 import { ProductService } from '../services/api';
 
 export const ProductCatalog = () => {

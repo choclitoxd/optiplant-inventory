@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Branch } from '../types';
+import type { Branch } from '../types';
 import { BranchService } from '../services/api';
 
 export const BranchManager = () => {

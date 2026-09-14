@@ -1,5 +1,8 @@
 import axios from 'axios';
-import { Product, ProductRequest, Branch, BranchRequest, Inventory, InventoryRequest } from '../types';
+import
+
+
+type { Product, ProductRequest, Branch, BranchRequest, Inventory, InventoryRequest } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',

@@ -8,4 +8,7 @@ import java.util.Optional;
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Optional<Inventory> findByBranchIdAndProductId(Long branchId, Long productId);
     List<Inventory> findByBranchId(Long branchId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(i.stock), 0) FROM Inventory i WHERE i.product.id = :productId")
+    Integer sumStockByProductId(@org.springframework.data.repository.query.Param("productId") Long productId);
 }
