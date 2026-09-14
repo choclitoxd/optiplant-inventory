@@ -4,6 +4,7 @@ import { ProductService } from '../services/api';
 
 export const ProductCatalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<ProductRequest>({ sku: '', name: '', description: '', unitOfMeasure: '', basePrice: 0 });
@@ -26,16 +27,30 @@ export const ProductCatalog = () => {
     }
   };
 
+  const filtered = products.filter(p => 
+    p.sku.toLowerCase().includes(search.toLowerCase()) || 
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 p-6 transition-all duration-300">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-slate-800 tracking-tight">Catálogo Global</h2>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
-        >
-          + Nuevo Producto
-        </button>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <input 
+            type="text" 
+            placeholder="Buscar por SKU o Nombre..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+          />
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
+          >
+            + Nuevo Producto
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -52,9 +67,9 @@ export const ProductCatalog = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.length === 0 ? (
-                 <tr><td colSpan={4} className="text-center py-10 text-slate-400">No hay productos registrados.</td></tr>
-              ) : products.map((p) => (
+              {filtered.length === 0 ? (
+                 <tr><td colSpan={4} className="text-center py-10 text-slate-400">No se encontraron productos.</td></tr>
+              ) : filtered.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50/50 transition-colors duration-200 group">
                   <td className="py-4 px-4 font-medium text-slate-700">{p.sku}</td>
                   <td className="py-4 px-4">

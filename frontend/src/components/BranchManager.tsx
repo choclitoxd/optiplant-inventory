@@ -17,7 +17,7 @@ export const BranchManager = () => {
     try {
       await BranchService.update(branch.id, { name: branch.name, address: branch.address, active: !branch.active });
       loadBranches();
-    } catch (e) { alert("Error al actualizar"); }
+    } catch (e) { alert("Error al actualizar estado"); }
   };
 
   return (
@@ -31,6 +31,8 @@ export const BranchManager = () => {
 
       {loading ? (
         <div className="h-32 flex items-center justify-center"><div className="animate-spin h-6 w-6 border-4 border-slate-800 border-t-transparent rounded-full"></div></div>
+      ) : branches.length === 0 ? (
+        <div className="text-center py-10 text-slate-400">No hay sucursales registradas.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {branches.map(b => (

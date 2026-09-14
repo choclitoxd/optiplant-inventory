@@ -22,7 +22,6 @@ export const CatalogPage = () => {
           <p className="text-slate-500 mt-2 font-medium">Gestión Multi-Sucursal MVP</p>
         </header>
 
-        {/* Custom Tabs Navigation */}
         <div className="flex flex-wrap gap-2 mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
           {navs.map((nav) => (
             <button
@@ -39,7 +38,6 @@ export const CatalogPage = () => {
           ))}
         </div>
 
-        {/* Content Area */}
         <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
           {activeTab === 'catalog' && <ProductCatalog />}
           {activeTab === 'branches' && <BranchManager />}

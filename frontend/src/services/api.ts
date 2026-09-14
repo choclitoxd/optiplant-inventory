@@ -6,7 +6,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Interceptor genérico para loguear y formatear errores
 api.interceptors.response.use(
   (response) => response,
   (error) => {
