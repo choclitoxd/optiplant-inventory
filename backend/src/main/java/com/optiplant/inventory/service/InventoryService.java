@@ -1,17 +1,11 @@
 package com.optiplant.inventory.service;
 
-/**
- * ¿Por qué se hizo así?
- *   • Encapsula la lógica de negocio de stock (p.ej., no permite stock negativo).
- *   • Mantiene la capa de dominio libre de dependencias de Spring MVC.
- */
-
-import com.optiplant.inventory.dto.InventoryDTO;
-import com.optiplant.inventory.model.Inventory;
-import com.optiplant.inventory.model.Branch;
-import com.optiplant.inventory.model.Product;
-import com.optiplant.inventory.repository.InventoryRepository;
+import com.optiplant.inventory.domain.dto.InventoryRequestDto;
+import com.optiplant.inventory.domain.dto.InventoryResponseDto;
+import com.optiplant.inventory.domain.entity.Inventory;
+import com.optiplant.inventory.exception.ResourceNotFoundException;
 import com.optiplant.inventory.repository.BranchRepository;
+import com.optiplant.inventory.repository.InventoryRepository;
 import com.optiplant.inventory.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,58 +15,48 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
-
-    private final InventoryRepository inventoryRepo;
+    private final InventoryRepository invRepo;
     private final BranchRepository branchRepo;
-    private final ProductRepository productRepo;
+    private final ProductRepository prodRepo;
 
     @Transactional(readOnly = true)
-    public List<Inventory> findAll() {
-        return inventoryRepo.findAll();
+    public List<InventoryResponseDto> findAll() {
+        return invRepo.findAll().stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Inventory> findByBranchId(Long branchId) {
-        return inventoryRepo.findAll()
-                .stream()
-                .filter(i -> i.getBranch().getId().equals(branchId))
-                .toList();
+    public InventoryResponseDto findById(Long id) {
+        return toResponse(invRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado")));
+    }
+
+    @Transactional(readOnly = true)
+    public List<InventoryResponseDto> findByBranch(Long branchId) {
+        return invRepo.findByBranchId(branchId).stream().map(this::toResponse).toList();
     }
 
     @Transactional
-    public Inventory create(InventoryDTO dto) {
-        Branch branch = branchRepo.findById(dto.branchId())
-                .orElseThrow(() -> new IllegalArgumentException("Branch no encontrada"));
-        Product product = productRepo.findById(dto.productId())
-                .orElseThrow(() -> new IllegalArgumentException("Product no encontrado"));
-        if (dto.stock() < 0) {
-            throw new IllegalArgumentException("Stock no puede ser negativo");
-        }
-        Inventory inventory = Inventory.builder()
-                .branch(branch)
-                .product(product)
-                .stock(dto.stock())
-                .minStockThreshold(dto.minStockThreshold())
-                .build();
-        return inventoryRepo.save(inventory);
-    }
-
-    @Transactional
-    public Inventory update(Long id, InventoryDTO dto) {
-        Inventory inv = inventoryRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Inventario no encontrado"));
-        if (dto.stock() < 0) {
-            throw new IllegalArgumentException("Stock no puede ser negativo");
-        }
+    public InventoryResponseDto createOrUpdate(InventoryRequestDto dto) {
+        Inventory inv = invRepo.findByBranchIdAndProductId(dto.branchId(), dto.productId())
+            .orElseGet(() -> Inventory.builder()
+                .branch(branchRepo.getReferenceById(dto.branchId()))
+                .product(prodRepo.getReferenceById(dto.productId()))
+                .stock(0)
+                .build());
+                
         inv.setStock(dto.stock());
         inv.setMinStockThreshold(dto.minStockThreshold());
-        return inventoryRepo.save(inv);
+        
+        return toResponse(invRepo.save(inv));
     }
-
+    
     @Transactional
     public void delete(Long id) {
-        if (!inventoryRepo.existsById(id))
-            throw new IllegalArgumentException("Inventario no encontrado");
-        inventoryRepo.deleteById(id);
+        if (!invRepo.existsById(id)) throw new ResourceNotFoundException("Inventario no encontrado");
+        invRepo.deleteById(id);
+    }
+
+    private InventoryResponseDto toResponse(Inventory i) {
+        return new InventoryResponseDto(i.getId(), i.getBranch().getId(), i.getProduct().getId(), 
+            i.getStock(), i.getMinStockThreshold(), i.getVersion());
     }
 }
