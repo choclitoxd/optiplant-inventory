@@ -1,8 +1,5 @@
 import axios from 'axios';
-import
-
-
-type { Product, ProductRequest, Branch, BranchRequest, Inventory, InventoryRequest } from '../types';
+import type { Product, ProductRequest, Branch, BranchRequest, Inventory, InventoryRequest, Supplier, SupplierRequest, PurchaseResponse, PurchaseRequest } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
@@ -32,4 +29,14 @@ export const BranchService = {
 export const InventoryService = {
   getByBranch: (branchId: number) => api.get<Inventory[]>(`/inventories/branch/${branchId}`).then(r => r.data),
   setupOrUpdate: (data: InventoryRequest) => api.post<Inventory>('/inventories', data).then(r => r.data),
+};
+
+export const SupplierService = {
+  getAll: () => api.get<Supplier[]>('/suppliers').then(r => r.data),
+  create: (data: SupplierRequest) => api.post<Supplier>('/suppliers', data).then(r => r.data),
+};
+
+export const PurchaseService = {
+  getAll: () => api.get<PurchaseResponse[]>('/purchases').then(r => r.data),
+  create: (data: PurchaseRequest) => api.post<PurchaseResponse>('/purchases', data).then(r => r.data),
 };
