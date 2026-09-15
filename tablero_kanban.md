@@ -12,17 +12,17 @@
 **Etiqueta:** `[MVP]`
 **¿Por qué se hizo así?** Usar un flujo de dos fases (Envío -> Tránsito -> Recepción) es la única forma auditable de manejar pérdidas durante el transporte y hacer recepciones parciales.
 **Checklist Técnica:**
-- [ ] **PostgreSQL:** Crear tabla `transfer` (estados: PENDING, SHIPPED, COMPLETED, PARTIAL) y `transfer_detail`.
-- [ ] **Spring Boot:** Endpoint `POST /api/transfers/ship` -> Descuenta stock en sucursal origen.
-- [ ] **Spring Boot:** Endpoint `POST /api/transfers/receive` -> Lógica para recepción.
-- [ ] **Spring Boot:** Lógica de recepción parcial: Si la cantidad recibida es menor a la enviada, calcular faltante y registrar en tabla de `inventory_adjustment` (Merma).
+- [x] **PostgreSQL:** Crear tabla `transfer` (estados: PENDING, SHIPPED, COMPLETED, PARTIAL) y `transfer_detail`.
+- [x] **Spring Boot:** Endpoint `POST /api/transfers/ship` -> Descuenta stock en sucursal origen.
+- [x] **Spring Boot:** Endpoint `POST /api/transfers/receive` -> Lógica para recepción.
+- [x] **Spring Boot:** Lógica de recepción parcial: Si la cantidad recibida es menor a la enviada, calcular faltante y registrar en tabla de `inventory_adjustment` (Merma).
 - [ ] **React (TS):** Panel de "Transferencias Entrantes" y modal para confirmar cuántas unidades llegaron realmente.
 
 ### 📝 Tarjeta 7: Dashboard de Análisis
 **Etiqueta:** `[MVP]`
 **¿Por qué se hizo así?** Un panel visual consolida el valor del sistema para la gerencia. Se delega la carga analítica al backend (agrupaciones SQL) para no saturar la memoria del navegador.
 **Checklist Técnica:**
-- [ ] **Spring Boot:** Crear queries y endpoints de agregación (ej. total de ventas diarias, productos con bajo stock).
+- [x] **Spring Boot:** Crear queries y endpoints de agregación (ej. total de ventas diarias, productos con bajo stock).
 - [ ] **React (TS):** Integrar biblioteca de gráficos (ej. Recharts o Chart.js).
 - [ ] **React (TS):** Construir vista principal (Landing) con indicadores clave de rendimiento (KPIs).
 
@@ -30,18 +30,10 @@
 **Etiqueta:** `[SPRINKLES]`
 **¿Por qué se hizo así?** Aporta proactividad al sistema. Usar tareas programadas en el servidor evita que dependa de que un usuario tenga abierta la aplicación.
 **Checklist Técnica:**
-- [ ] **PostgreSQL:** Añadir campo `min_stock_threshold` a la tabla `inventory`.
-- [ ] **Spring Boot:** Configurar `@EnableScheduling`.
-- [ ] **Spring Boot:** Crear un cron job (`@Scheduled`) que evalúe diariamente el inventario.
+- [x] **PostgreSQL:** Añadir campo `min_stock_threshold` a la tabla `inventory`.
+- [x] **Spring Boot:** Configurar `@EnableScheduling`.
+- [x] **Spring Boot:** Crear un cron job (`@Scheduled`) que evalúe diariamente el inventario.
 - [ ] **React (TS) / Backend:** Enviar notificación por WebSocket o mostrar un banner de alerta en el Dashboard si un producto cae por debajo de su umbral.
-
-### 📝 Tarjeta 9: Documentación y Evidencia de IA
-**Etiqueta:** `[MVP]`
-**¿Por qué se hizo así?** La transparencia en el uso de herramientas de IA durante el desarrollo es vital para justificar decisiones arquitectónicas y evaluar el prompt engineering.
-**Checklist Técnica:**
-- [ ] Recopilar logs/transcripciones del asistente.
-- [ ] Redactar documento Markdown con casos de uso de IA (ej. generación de queries, configuración de Docker).
-- [ ] Revisión final del código generado para asegurar cumplimiento de estándares de calidad.
 
 ---
 
@@ -51,16 +43,24 @@
 **Etiqueta:** `[MVP]`
 **¿Por qué se hizo así?** La validación de stock *debe* ser concurrente en el motor de BD (usando `SELECT ... FOR UPDATE`) para evitar saldos negativos si dos cajeros venden el último artículo al mismo tiempo.
 **Checklist Técnica:**
-- [ ] **PostgreSQL:** Crear tablas `sale` y `sale_detail`.
-- [ ] **Spring Boot:** Crear endpoint `POST /api/sales`.
-- [ ] **Spring Boot:** Implementar validación estricta de saldo. Si `cantidad_venta > stock_actual`, lanzar excepción (`HTTP 400`).
-- [ ] **Spring Boot:** Aplicar bloqueo pesimista en la fila del inventario al descontar (`@Lock(LockModeType.PESSIMISTIC_WRITE)`).
+- [x] **PostgreSQL:** Crear tablas `sale` y `sale_detail`.
+- [x] **Spring Boot:** Crear endpoint `POST /api/sales`.
+- [x] **Spring Boot:** Implementar validación estricta de saldo. Si `cantidad_venta > stock_actual`, lanzar excepción (`HTTP 400`).
+- [x] **Spring Boot:** Aplicar bloqueo pesimista en la fila del inventario al descontar (`@Lock(LockModeType.PESSIMISTIC_WRITE)`).
 - [ ] **React (TS):** Interfaz de Punto de Venta (POS). Deshabilitar el botón de venta si el stock local pre-consultado es 0 (UX).
 
 
 ---
 
 ## ✅ DONE (Hecho)
+
+### 📝 Tarjeta 9: Documentación y Evidencia de IA
+**Etiqueta:** `[MVP]`
+**¿Por qué se hizo así?** La transparencia en el uso de herramientas de IA durante el desarrollo es vital para justificar decisiones arquitectónicas y evaluar el prompt engineering.
+**Checklist Técnica:**
+- [x] Recopilar logs/transcripciones del asistente.
+- [x] Redactar documento Markdown con casos de uso de IA (ej. generación de queries, configuración de Docker).
+- [x] Revisión final del código generado para asegurar cumplimiento de estándares de calidad.
 
 ### 📝 Tarjeta 4: Módulo de Compras (Costo Promedio Ponderado)
 **Etiqueta:** `[MVP]`
