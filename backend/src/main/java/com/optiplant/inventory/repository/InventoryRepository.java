@@ -15,4 +15,24 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("SELECT i FROM Inventory i WHERE i.branch.id = :branchId AND i.product.id = :productId")
     Optional<Inventory> findByBranchIdAndProductIdWithLock(@org.springframework.data.repository.query.Param("branchId") Long branchId, @org.springframework.data.repository.query.Param("productId") Long productId);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT new com.optiplant.inventory.domain.dto.StockAlertDTO(" +
+        "i.id, b.name, p.name, p.sku, i.stock, i.minStockThreshold, " +
+        "(i.minStockThreshold * 2) - i.stock, " +
+        "CASE WHEN i.stock = 0 THEN 'CRITICAL' ELSE 'WARNING' END) " +
+        "FROM Inventory i JOIN i.branch b JOIN i.product p " +
+        "WHERE i.stock <= i.minStockThreshold"
+    )
+    List<com.optiplant.inventory.domain.dto.StockAlertDTO> findLowStockInventories();
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT new com.optiplant.inventory.domain.dto.StockAlertDTO(" +
+        "i.id, b.name, p.name, p.sku, i.stock, i.minStockThreshold, " +
+        "(i.minStockThreshold * 2) - i.stock, " +
+        "CASE WHEN i.stock = 0 THEN 'CRITICAL' ELSE 'WARNING' END) " +
+        "FROM Inventory i JOIN i.branch b JOIN i.product p " +
+        "WHERE i.stock <= i.minStockThreshold AND b.id = :branchId"
+    )
+    List<com.optiplant.inventory.domain.dto.StockAlertDTO> findLowStockInventoriesByBranch(@org.springframework.data.repository.query.Param("branchId") Long branchId);
 }

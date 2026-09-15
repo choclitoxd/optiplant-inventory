@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: optiplant
+  mail:
+    host: smtp.mailtrap.io
+    port: 2525
+    username: my-username
+    password: my-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

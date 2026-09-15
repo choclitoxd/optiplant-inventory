@@ -3,9 +3,11 @@ import { CatalogPage } from './pages/CatalogPage';
 import { PurchasePage } from './pages/PurchasePage';
 import { SalesPage } from './pages/SalesPage';
 import { TransferPage } from './pages/TransferPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { AlertsPage } from './pages/AlertsPage';
 
 function App() {
-  const [currentRoute, setCurrentRoute] = useState<'catalog' | 'purchases' | 'sales' | 'transfers'>('catalog');
+  const [currentRoute, setCurrentRoute] = useState<'dashboard' | 'catalog' | 'purchases' | 'sales' | 'transfers' | 'alerts'>('dashboard');
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -19,6 +21,18 @@ function App() {
         </div>
         
         <div className="flex flex-col gap-2">
+          <button 
+            onClick={() => setCurrentRoute('dashboard')}
+            className={`text-left px-4 py-3 rounded-xl font-medium transition-colors ${currentRoute === 'dashboard' ? 'bg-purple-600 text-white shadow-md shadow-purple-900/50' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+          >
+            📊 Dashboard
+          </button>
+          <button 
+            onClick={() => setCurrentRoute('alerts')}
+            className={`text-left px-4 py-3 rounded-xl font-medium transition-colors ${currentRoute === 'alerts' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+          >
+            🚨 Alertas Stock
+          </button>
           <button 
             onClick={() => setCurrentRoute('catalog')}
             className={`text-left px-4 py-3 rounded-xl font-medium transition-colors ${currentRoute === 'catalog' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
@@ -47,7 +61,9 @@ function App() {
       </nav>
 
       {/* Contenido principal */}
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-y-auto">
+        {currentRoute === 'dashboard' && <DashboardPage />}
+        {currentRoute === 'alerts' && <AlertsPage />}
         {currentRoute === 'catalog' && <CatalogPage />}
         {currentRoute === 'purchases' && <PurchasePage />}
         {currentRoute === 'sales' && <SalesPage />}
