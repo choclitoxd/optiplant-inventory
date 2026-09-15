@@ -74,6 +74,7 @@ CREATE TABLE sale (
     branch_id   BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     sale_date   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(10,2) NOT NULL,
+    responsible_user VARCHAR(100) NOT NULL DEFAULT 'Sistema',
     created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -83,34 +84,26 @@ CREATE TABLE sale_detail (
     product_id  BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     quantity    INT NOT NULL CHECK (quantity > 0),
     unit_price  DECIMAL(10,2) NOT NULL,
+    subtotal    DECIMAL(10,2) NOT NULL,
     UNIQUE (sale_id, product_id)
 );
 
 CREATE TABLE transfer (
     id                  BIGSERIAL PRIMARY KEY,
-    source_branch_id    BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    origin_branch_id    BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     destination_branch_id BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    status              VARCHAR(20) NOT NULL
-        CHECK (status IN ('PENDING','SHIPPED','COMPLETED','PARTIAL')),
-    requested_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    shipped_at          TIMESTAMP,
-    received_at         TIMESTAMP,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    send_date           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    receive_date        TIMESTAMP,
+    status              VARCHAR(20) NOT NULL,
+    responsible_user    VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE transfer_shipment_detail (
-    id              BIGSERIAL PRIMARY KEY,
-    transfer_id     BIGINT NOT NULL REFERENCES transfer(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    product_id      BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    quantity_shipped INT NOT NULL CHECK (quantity_shipped > 0),
-    UNIQUE (transfer_id, product_id)
-);
-
-CREATE TABLE transfer_receipt_detail (
-    id              BIGSERIAL PRIMARY KEY,
-    transfer_id     BIGINT NOT NULL REFERENCES transfer(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    product_id      BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    quantity_received INT NOT NULL CHECK (quantity_received >= 0),
+CREATE TABLE transfer_detail (
+    id                  BIGSERIAL PRIMARY KEY,
+    transfer_id         BIGINT NOT NULL REFERENCES transfer(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    product_id          BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    quantity_sent       INT NOT NULL CHECK (quantity_sent > 0),
+    quantity_received   INT,
     UNIQUE (transfer_id, product_id)
 );
 
@@ -118,10 +111,9 @@ CREATE TABLE inventory_adjustment (
     id                  BIGSERIAL PRIMARY KEY,
     branch_id           BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     product_id          BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    transfer_id         BIGINT REFERENCES transfer(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    adjustment_quantity INT NOT NULL,
+    quantity            INT NOT NULL,
     reason              VARCHAR(255) NOT NULL,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    adjustment_date     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE stock_movement (
