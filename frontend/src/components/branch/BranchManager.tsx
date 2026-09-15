@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { Branch } from '../types';
-import { BranchService } from '../services/api';
+import type { Branch } from '../../types';
+import { branchService } from '../../services/branchService';
 
 export const BranchManager = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -8,14 +8,14 @@ export const BranchManager = () => {
 
   const loadBranches = () => {
     setLoading(true);
-    BranchService.getAll().then(setBranches).finally(() => setLoading(false));
+    branchService.getAll().then(setBranches).finally(() => setLoading(false));
   };
 
   useEffect(() => { loadBranches(); }, []);
 
   const toggleStatus = async (branch: Branch) => {
     try {
-      await BranchService.update(branch.id, { name: branch.name, address: branch.address, active: !branch.active });
+      await branchService.update(branch.id, { name: branch.name, address: branch.address, active: !branch.active });
       loadBranches();
     } catch (e) { alert("Error al actualizar estado"); }
   };

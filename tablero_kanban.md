@@ -4,27 +4,9 @@
 
 
 
-### 📝 Tarjeta 4: Módulo de Compras (Costo Promedio Ponderado)
-**Etiqueta:** `[MVP]`
-**¿Por qué se hizo así?** Calcular el costo promedio ponderado en el backend al momento de registrar la compra garantiza que la lógica financiera no dependa de manipulaciones del cliente (seguridad y consistencia).
-**Checklist Técnica:**
-- [ ] **PostgreSQL:** Crear tabla `purchase` y `purchase_detail`.
-- [ ] **Spring Boot:** Crear endpoint `POST /api/purchases`.
-- [ ] **Spring Boot:** Implementar lógica transaccional (`@Transactional`) que:
-  - Inserte el registro de la compra.
-  - Recalcule el costo promedio ponderado del producto.
-  - Aumente el `stock` en la tabla `inventory` de la sucursal receptora.
-- [ ] **React (TS):** Crear formulario maestro-detalle para registrar facturas de proveedores.
 
-### 📝 Tarjeta 5: Módulo de Ventas (Validación de Stock)
-**Etiqueta:** `[MVP]`
-**¿Por qué se hizo así?** La validación de stock *debe* ser concurrente en el motor de BD (usando `SELECT ... FOR UPDATE`) para evitar saldos negativos si dos cajeros venden el último artículo al mismo tiempo.
-**Checklist Técnica:**
-- [ ] **PostgreSQL:** Crear tablas `sale` y `sale_detail`.
-- [ ] **Spring Boot:** Crear endpoint `POST /api/sales`.
-- [ ] **Spring Boot:** Implementar validación estricta de saldo. Si `cantidad_venta > stock_actual`, lanzar excepción (`HTTP 400`).
-- [ ] **Spring Boot:** Aplicar bloqueo pesimista/optimista en la fila del inventario al descontar.
-- [ ] **React (TS):** Interfaz de Punto de Venta (POS). Deshabilitar el botón de venta si el stock local pre-consultado es 0 (UX).
+
+
 
 ### 📝 Tarjeta 6: Módulo de Transferencias entre Sucursales
 **Etiqueta:** `[MVP]`
@@ -65,12 +47,29 @@
 
 ## 🏗️ DOING (En proceso / Sprint Actual)
 
-
+### 📝 Tarjeta 5: Módulo de Ventas (Validación de Stock)
+**Etiqueta:** `[MVP]`
+**¿Por qué se hizo así?** La validación de stock *debe* ser concurrente en el motor de BD (usando `SELECT ... FOR UPDATE`) para evitar saldos negativos si dos cajeros venden el último artículo al mismo tiempo.
+**Checklist Técnica:**
+- [ ] **PostgreSQL:** Crear tablas `sale` y `sale_detail`.
+- [ ] **Spring Boot:** Crear endpoint `POST /api/sales`.
+- [ ] **Spring Boot:** Implementar validación estricta de saldo. Si `cantidad_venta > stock_actual`, lanzar excepción (`HTTP 400`).
+- [ ] **Spring Boot:** Aplicar bloqueo pesimista en la fila del inventario al descontar (`@Lock(LockModeType.PESSIMISTIC_WRITE)`).
+- [ ] **React (TS):** Interfaz de Punto de Venta (POS). Deshabilitar el botón de venta si el stock local pre-consultado es 0 (UX).
 
 
 ---
 
 ## ✅ DONE (Hecho)
+
+### 📝 Tarjeta 4: Módulo de Compras (Costo Promedio Ponderado)
+**Etiqueta:** `[MVP]`
+**¿Por qué se hizo así?** Calcular el costo promedio ponderado en el backend al momento de registrar la compra garantiza que la lógica financiera no dependa de manipulaciones del cliente (seguridad y consistencia).
+**Checklist Técnica:**
+- [x] **PostgreSQL:** Crear tabla `purchase` y `purchase_detail`.
+- [x] **Spring Boot:** Crear endpoint `POST /api/purchases`.
+- [x] **Spring Boot:** Implementar lógica transaccional (`@Transactional`) que inserta registro, recalcula CPP y aumenta stock local.
+- [x] **React (TS):** Crear formulario maestro-detalle y vistas para registrar facturas de proveedores.
 
 ### 📝 Tarjeta 1: Diseño de Ingeniería y Modelado
 **Etiqueta:** `[MVP]`

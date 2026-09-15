@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { Branch, Inventory, Product } from '../types';
-import { BranchService, InventoryService, ProductService } from '../services/api';
+import type { Branch, Inventory, Product } from '../../types';
+import { branchService, inventoryService } from '../../services/branchService';
+import { productService } from '../../services/productService';
 
 export const BranchStockView = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -10,18 +11,18 @@ export const BranchStockView = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    BranchService.getAll().then(res => {
+    branchService.getAll().then(res => {
       const actives = res.filter(b => b.active);
       setBranches(actives);
       if(actives.length > 0) setSelectedBranch(actives[0].id);
     });
-    ProductService.getAll().then(setProducts);
+    productService.getAll().then(setProducts);
   }, []);
 
   useEffect(() => {
     if (selectedBranch > 0) {
       setLoading(true);
-      InventoryService.getByBranch(selectedBranch).then(setInventories).finally(() => setLoading(false));
+      inventoryService.getByBranch(selectedBranch).then(setInventories).finally(() => setLoading(false));
     }
   }, [selectedBranch]);
 

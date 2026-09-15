@@ -8,6 +8,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
+/**
+ * ¿Por qué se hizo así?
+ *   • Centraliza el manejo de errores para que los controladores permanezcan limpios.
+ *   • Captura los principales tipos de excepción que pueden lanzar los servicios
+ *     (validación, integridad de BD, argumentos no válidos) y devuelve respuestas JSON
+ *     consistentes.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

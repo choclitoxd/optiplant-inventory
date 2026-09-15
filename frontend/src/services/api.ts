@@ -1,5 +1,4 @@
 import axios from 'axios';
-import type { Product, ProductRequest, Branch, BranchRequest, Inventory, InventoryRequest, Supplier, SupplierRequest, PurchaseResponse, PurchaseRequest } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
@@ -14,29 +13,4 @@ api.interceptors.response.use(
   }
 );
 
-export const ProductService = {
-  getAll: () => api.get<Product[]>('/products').then(r => r.data),
-  create: (data: ProductRequest) => api.post<Product>('/products', data).then(r => r.data),
-  update: (id: number, data: ProductRequest) => api.put<Product>(`/products/${id}`, data).then(r => r.data),
-};
-
-export const BranchService = {
-  getAll: () => api.get<Branch[]>('/branches').then(r => r.data),
-  create: (data: BranchRequest) => api.post<Branch>('/branches', data).then(r => r.data),
-  update: (id: number, data: BranchRequest) => api.put<Branch>(`/branches/${id}`, data).then(r => r.data),
-};
-
-export const InventoryService = {
-  getByBranch: (branchId: number) => api.get<Inventory[]>(`/inventories/branch/${branchId}`).then(r => r.data),
-  setupOrUpdate: (data: InventoryRequest) => api.post<Inventory>('/inventories', data).then(r => r.data),
-};
-
-export const SupplierService = {
-  getAll: () => api.get<Supplier[]>('/suppliers').then(r => r.data),
-  create: (data: SupplierRequest) => api.post<Supplier>('/suppliers', data).then(r => r.data),
-};
-
-export const PurchaseService = {
-  getAll: () => api.get<PurchaseResponse[]>('/purchases').then(r => r.data),
-  create: (data: PurchaseRequest) => api.post<PurchaseResponse>('/purchases', data).then(r => r.data),
-};
+export default api;

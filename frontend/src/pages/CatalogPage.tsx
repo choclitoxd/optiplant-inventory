@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ProductCatalog } from '../components/ProductCatalog';
-import { BranchManager } from '../components/BranchManager';
-import { BranchStockView } from '../components/BranchStockView';
+import { ProductCatalog } from '../components/catalog/ProductCatalog';
+import { BranchManager } from '../components/branch/BranchManager';
+import { BranchStockView } from '../components/branch/BranchStockView';
 
 export const CatalogPage = () => {
   const [activeTab, setActiveTab] = useState<'catalog' | 'branches' | 'stock'>('catalog');

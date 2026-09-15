@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { Product, ProductRequest } from '../types';
-import { ProductService } from '../services/api';
+import type { Product, ProductRequest } from '../../types';
+import { productService } from '../../services/productService';
 
 export const ProductCatalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -11,7 +11,7 @@ export const ProductCatalog = () => {
 
   const loadProducts = () => {
     setLoading(true);
-    ProductService.getAll().then(setProducts).finally(() => setLoading(false));
+    productService.getAll().then(setProducts).finally(() => setLoading(false));
   };
 
   useEffect(() => { loadProducts(); }, []);
@@ -19,7 +19,7 @@ export const ProductCatalog = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await ProductService.create(formData);
+      await productService.create(formData);
       setIsModalOpen(false);
       loadProducts();
     } catch (err) {
