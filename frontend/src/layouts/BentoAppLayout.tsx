@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   SquaresFour, 
   WarningCircle, 
@@ -10,8 +10,12 @@ import {
   MagnifyingGlass,
   Bell,
   CaretLeft,
-  CaretRight
+  CaretRight,
+  Storefront
 } from '@phosphor-icons/react';
+import { branchService } from '../services/branchService';
+import { productService } from '../services/productService';
+import type { Branch, Product } from '../types';
 
 interface BentoAppLayoutProps {
   children: React.ReactNode;
@@ -22,10 +26,40 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Cargar catálogos para búsqueda global rápida
+    Promise.all([branchService.getAll(), productService.getAll()])
+      .then(([bRes, pRes]) => {
+        setBranches(bRes);
+        setProducts(pRes);
+      })
+      .catch(console.error);
+  }, []);
+
+  // Manejador de tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSearchQuery('');
+        setIsSearching(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const filteredBranches = branches.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+  const hasResults = filteredBranches.length > 0 || filteredProducts.length > 0;
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: SquaresFour },
-    { name: 'Alertas Stock', path: '/alerts', icon: WarningCircle, badge: 4 },
+    { name: 'Alertas Stock', path: '/alerts', icon: WarningCircle },
     { name: 'Catálogo y Stock', path: '/catalog', icon: Package },
     { name: 'Recepción (Compras)', path: '/purchases', icon: DownloadSimple },
     { name: 'Punto de Venta (POS)', path: '/sales', icon: Receipt },
@@ -96,22 +130,10 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
                         )}
                       </div>
                       
-                      {/* Badge visible en expandido */}
-                      {item.badge && isSidebarOpen && (
-                        <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-bold border border-rose-500/20">
-                          {item.badge}
-                        </span>
-                      )}
-                      
                       {/* Tooltip visible solo en colapsado */}
                       {!isSidebarOpen && (
                         <div className="absolute left-full ml-3 px-3 py-2 bg-slate-800 text-white text-[12px] font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl border border-slate-700 flex items-center gap-2">
                           {item.name}
-                          {item.badge && (
-                            <span className="flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full bg-rose-500/20 text-rose-400 text-[9px] font-bold">
-                              {item.badge}
-                            </span>
-                          )}
                         </div>
                       )}
                     </>
@@ -120,22 +142,6 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
               );
             })}
           </nav>
-        </div>
-        
-        {/* Usuario Inferior */}
-        <div className={`p-4 mt-auto border-t border-slate-800 flex items-center ${isSidebarOpen ? 'gap-3 justify-start' : 'justify-center'}`}>
-          <div className="w-10 h-10 min-w-[40px] rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-indigo-400 text-sm">
-            AD
-          </div>
-          {isSidebarOpen && (
-            <div className="flex-1 overflow-hidden whitespace-nowrap">
-              <p className="text-[13px] font-bold truncate text-slate-200">Admin User</p>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Online</p>
-              </div>
-            </div>
-          )}
         </div>
       </aside>
 
@@ -148,25 +154,95 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
               <MagnifyingGlass size={20} weight="bold" />
               <input 
                 type="text" 
-                placeholder="Buscar productos, sucursales, alertas..." 
+                placeholder="Buscar productos, sucursales (ej. Poblado), o presiona ESC para limpiar..." 
                 className="w-full bg-transparent outline-none text-slate-700 font-medium placeholder:text-slate-400 text-sm"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchQuery) {
-                    setIsSearching(true);
-                    setTimeout(() => {
-                      setIsSearching(false);
-                      setSearchQuery('');
-                      alert(`Resultados para: "${searchQuery}"`);
-                    }, 800);
-                  }
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.length > 0) setIsSearching(true);
+                  // Simular tiempo de carga muy corto
+                  setTimeout(() => setIsSearching(false), 300);
                 }}
               />
               
               {isSearching && (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <div className="animate-spin w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+
+              {/* Menú Desplegable de Resultados (Spotlight Style) */}
+              {searchQuery.trim().length > 0 && !isSearching && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div className="max-h-80 overflow-y-auto custom-scrollbar p-2">
+                    
+                    {!hasResults ? (
+                      <div className="p-4 text-center text-slate-400 text-sm font-medium">
+                        No se encontraron resultados para "{searchQuery}"
+                      </div>
+                    ) : (
+                      <>
+                        {/* Sucursales */}
+                        {filteredBranches.length > 0 && (
+                          <div className="mb-2">
+                            <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                              Sucursales ({filteredBranches.length})
+                            </div>
+                            {filteredBranches.map(branch => (
+                              <div 
+                                key={`b-${branch.id}`} 
+                                onClick={() => {
+                                  setSearchQuery('');
+                                  navigate('/dashboard');
+                                }}
+                                className="p-2 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer flex items-center gap-3 group"
+                              >
+                                <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-indigo-100 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors">
+                                  <Storefront size={16} weight="bold" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{branch.name}</p>
+                                  <p className="text-xs text-slate-400 truncate">{branch.address}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Productos */}
+                        {filteredProducts.length > 0 && (
+                          <div>
+                            <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                              Productos ({filteredProducts.length})
+                            </div>
+                            {filteredProducts.map(product => (
+                              <div 
+                                key={`p-${product.id}`}
+                                onClick={() => {
+                                  setSearchQuery('');
+                                  navigate('/catalog');
+                                }}
+                                className="p-2 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer flex items-center gap-3 group"
+                              >
+                                <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center text-slate-500 group-hover:text-emerald-600 transition-colors">
+                                  <Package size={16} weight="bold" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold text-slate-700 group-hover:text-emerald-700 transition-colors">{product.name}</p>
+                                  <p className="text-xs text-slate-400 font-medium">SKU: {product.sku} | ${product.basePrice.toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="p-3 border-t border-slate-50 bg-slate-50/50 flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span>Resultados de Búsqueda</span>
+                    <span><kbd className="bg-white border border-slate-200 rounded px-1.5 py-0.5 shadow-sm text-slate-500">ESC</kbd> para limpiar</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -177,7 +253,6 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
                 className={`relative p-2 transition-colors rounded-xl ${showNotifications ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:bg-slate-50 hover:text-indigo-600'}`}
               >
                 <Bell size={22} weight="fill" />
-                <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white"></span>
               </button>
               
               {/* Dropdown Notificaciones */}
@@ -187,21 +262,9 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
                     <h3 className="font-bold text-slate-800 text-sm">Notificaciones</h3>
                     <button className="text-xs text-indigo-600 font-bold hover:text-indigo-700">Marcar leídas</button>
                   </div>
-                  <div className="p-2">
-                    <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer flex gap-3 items-start">
-                      <div className="mt-0.5 w-2 h-2 rounded-full bg-rose-500 shrink-0"></div>
-                      <div>
-                        <p className="text-sm text-slate-700 font-medium leading-snug">Stock crítico en <span className="font-bold">Lentes de Contacto Blue</span></p>
-                        <p className="text-xs text-slate-400 mt-1">Hace 2 min</p>
-                      </div>
-                    </div>
-                    <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer flex gap-3 items-start">
-                      <div className="mt-0.5 w-2 h-2 rounded-full bg-amber-500 shrink-0"></div>
-                      <div>
-                        <p className="text-sm text-slate-700 font-medium leading-snug">Transferencia TR-8490 recibida</p>
-                        <p className="text-xs text-slate-400 mt-1">Hace 1 hr</p>
-                      </div>
-                    </div>
+                  <div className="p-8 text-center text-slate-400">
+                    <Bell size={32} weight="duotone" className="mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No tienes notificaciones nuevas.</p>
                   </div>
                   <div className="p-3 border-t border-slate-100 text-center">
                     <button className="text-xs text-slate-500 font-bold hover:text-slate-700">Ver todas</button>

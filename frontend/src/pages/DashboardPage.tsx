@@ -3,6 +3,7 @@ import type { DashboardMetrics, StockValueByBranch, TopSellingProduct } from '..
 import { dashboardService } from '../services/dashboardService';
 import { KPICards } from '../components/dashboard/KPICards';
 import { BranchValueTable } from '../components/dashboard/BranchValueTable';
+import { BranchValueChart } from '../components/dashboard/BranchValueChart';
 import { TopSellingTable } from '../components/dashboard/TopSellingTable';
 import { ArrowsClockwise } from '@phosphor-icons/react';
 
@@ -65,7 +66,11 @@ export const DashboardPage = () => {
           <>
             <KPICards metrics={metrics} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="mt-8">
+              <BranchValueChart data={branchValues} />
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
               <BranchValueTable data={branchValues} totalValue={metrics.totalInventoryValue} />
               <TopSellingTable data={topProducts} />
             </div>
