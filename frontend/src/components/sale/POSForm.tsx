@@ -5,6 +5,7 @@ import type { SaleDetailRequest } from '../../types/sale';
 import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { saleService } from '../../services/saleService';
+import { Dropdown } from '../ui/Dropdown';
 
 export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -133,13 +134,14 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         {/* Filtro Sucursal */}
         <div className="mb-6 flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
           <label className="text-sm font-bold text-slate-600 uppercase tracking-wider pl-2">Sucursal Activa:</label>
-          <select 
-            value={selectedBranch} 
-            onChange={e => setSelectedBranch(Number(e.target.value))}
-            className="flex-1 max-w-[250px] bg-white border border-slate-200 text-slate-700 rounded-xl p-2 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold transition-all shadow-sm cursor-pointer"
-          >
-            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
+          <Dropdown
+            options={branches.map(b => ({ value: b.id as number, label: b.name }))}
+            value={selectedBranch || ''}
+            onChange={(val) => setSelectedBranch(Number(val))}
+            placeholder="Seleccione sucursal"
+            themeColor="#10b981"
+            className="flex-1 max-w-[250px]"
+          />
         </div>
 
         {/* Grid de Productos */}

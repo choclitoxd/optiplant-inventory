@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { purchaseService } from '../../services/purchaseService';
 import type { Supplier } from '../../types/supplier';
 import type { PurchaseDetailRequest } from '../../types/purchase';
+import { Dropdown } from '../ui/Dropdown';
 
 export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -60,10 +61,13 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Proveedor</label>
-          <select required className="w-full border border-slate-300 rounded-md p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50 focus:bg-white transition-colors" value={supplierId} onChange={e => setSupplierId(Number(e.target.value))}>
-            <option value={0}>Seleccione un proveedor</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.companyName}</option>)}
-          </select>
+          <Dropdown 
+            options={suppliers.map(s => ({ value: s.id as number, label: s.companyName }))}
+            value={supplierId || ''}
+            onChange={(val) => setSupplierId(Number(val))}
+            placeholder="Seleccione un proveedor"
+            themeColor="#2563eb" 
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">ID Sucursal Destino</label>

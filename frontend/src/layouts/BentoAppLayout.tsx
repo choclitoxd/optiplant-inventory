@@ -15,7 +15,9 @@ import {
 } from '@phosphor-icons/react';
 import { branchService } from '../services/branchService';
 import { productService } from '../services/productService';
+import { alertService } from '../services/alertService';
 import type { Branch, Product } from '../types';
+import type { StockAlert } from '../types/stockAlert';
 
 interface BentoAppLayoutProps {
   children: React.ReactNode;
@@ -29,14 +31,16 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
   
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [alerts, setAlerts] = useState<StockAlert[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Cargar catálogos para búsqueda global rápida
-    Promise.all([branchService.getAll(), productService.getAll()])
-      .then(([bRes, pRes]) => {
+    // Cargar catálogos y alertas globales para la cabecera
+    Promise.all([branchService.getAll(), productService.getAll(), alertService.getLowStockAlerts()])
+      .then(([bRes, pRes, aRes]) => {
         setBranches(bRes);
         setProducts(pRes);
+        setAlerts(aRes);
       })
       .catch(console.error);
   }, []);
@@ -253,21 +257,58 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
                 className={`relative p-2 transition-colors rounded-xl ${showNotifications ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:bg-slate-50 hover:text-indigo-600'}`}
               >
                 <Bell size={22} weight="fill" />
+                {alerts.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-3 h-3 bg-rose-500 border-2 border-white rounded-full animate-pulse"></span>
+                )}
               </button>
               
               {/* Dropdown Notificaciones */}
               {showNotifications && (
                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
                   <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <h3 className="font-bold text-slate-800 text-sm">Notificaciones</h3>
-                    <button className="text-xs text-indigo-600 font-bold hover:text-indigo-700">Marcar leídas</button>
+                    <h3 className="font-bold text-slate-800 text-sm">Notificaciones ({alerts.length})</h3>
+                    {alerts.length > 0 && (
+                      <button onClick={() => setAlerts([])} className="text-xs text-indigo-600 font-bold hover:text-indigo-700">Ocultar</button>
+                    )}
                   </div>
-                  <div className="p-8 text-center text-slate-400">
-                    <Bell size={32} weight="duotone" className="mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No tienes notificaciones nuevas.</p>
+                  
+                  <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                    {alerts.length === 0 ? (
+                      <div className="p-8 text-center text-slate-400">
+                        <Bell size={32} weight="duotone" className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Todo al día. No hay alertas.</p>
+                      </div>
+                    ) : (
+                      <div className="p-2 space-y-1">
+                        {alerts.map((alert) => (
+                          <div 
+                            key={`alert-${alert.inventoryId}`}
+                            onClick={() => {
+                              setShowNotifications(false);
+                              navigate('/alerts');
+                            }}
+                            className={`p-3 rounded-xl flex items-start gap-3 cursor-pointer transition-colors border ${
+                              alert.severity === 'CRITICAL' 
+                                ? 'bg-rose-50/50 hover:bg-rose-50 border-rose-100/50' 
+                                : 'bg-amber-50/50 hover:bg-amber-50 border-amber-100/50'
+                            }`}
+                          >
+                            <WarningCircle size={18} weight="fill" className={alert.severity === 'CRITICAL' ? 'text-rose-500' : 'text-amber-500'} />
+                            <div>
+                              <p className="text-sm font-bold text-slate-700 leading-tight">{alert.productName}</p>
+                              <p className="text-[11px] font-medium text-slate-500 mt-0.5">{alert.branchName}</p>
+                              <p className={`text-xs mt-1 font-bold ${alert.severity === 'CRITICAL' ? 'text-rose-600' : 'text-amber-600'}`}>
+                                Stock: {alert.currentStock} (Mín: {alert.minStockThreshold})
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="p-3 border-t border-slate-100 text-center">
-                    <button className="text-xs text-slate-500 font-bold hover:text-slate-700">Ver todas</button>
+                  
+                  <div className="p-3 border-t border-slate-100 text-center bg-slate-50">
+                    <button onClick={() => { setShowNotifications(false); navigate('/alerts'); }} className="text-xs text-slate-500 font-bold hover:text-slate-700">Ver panel completo</button>
                   </div>
                 </div>
               )}

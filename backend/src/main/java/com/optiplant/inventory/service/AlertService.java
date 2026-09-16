@@ -34,10 +34,12 @@ public class AlertService {
         return inventoryRepository.findLowStockInventoriesByBranch(branchId);
     }
 
-    public void manualSendEmailReport() {
+    public void manualSendEmailReport(String email) {
         List<StockAlertDTO> alerts = getAllLowStockAlerts();
         if (!alerts.isEmpty()) {
-            emailService.sendLowStockAlertEmail(adminEmail, alerts);
+            String recipient = (email != null && !email.trim().isEmpty()) ? email : adminEmail;
+            emailService.sendLowStockAlertEmail(recipient, alerts);
+            System.out.println("Enviando reporte manual a: " + recipient);
         }
     }
 

@@ -72,6 +72,12 @@ public class PurchaseService {
         return buildResponseDTO(savedPurchase);
     }
 
+    public List<PurchaseResponseDTO> getAllPurchases() {
+        return purchaseRepository.findAll().stream()
+            .map(this::buildResponseDTO)
+            .toList();
+    }
+
     private PurchaseResponseDTO buildResponseDTO(Purchase purchase) {
         List<PurchaseDetailResponseDTO> detailDTOs = purchase.getDetails().stream()
             .map(d -> new PurchaseDetailResponseDTO(

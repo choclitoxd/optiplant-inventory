@@ -4,6 +4,7 @@ import type { Branch } from '../../types';
 import type { SaleResponse } from '../../types/sale';
 import { branchService } from '../../services/branchService';
 import { saleService } from '../../services/saleService';
+import { Dropdown } from '../ui/Dropdown';
 
 export const SalesHistory = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -62,14 +63,16 @@ export const SalesHistory = () => {
 
           <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
             <Storefront size={18} className="text-slate-400" weight="bold" />
-            <select 
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(Number(e.target.value))}
-              className="w-full sm:w-48 bg-transparent text-slate-700 text-sm rounded-xl outline-none font-medium p-2.5 cursor-pointer appearance-none"
-            >
-              {branches.length === 0 && <option value={0}>Cargando...</option>}
-              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+          <div className="w-full sm:w-48">
+            <Dropdown
+              options={branches.length === 0 ? [] : branches.map(b => ({ value: b.id as number, label: b.name }))}
+              value={selectedBranch || ''}
+              onChange={(val) => setSelectedBranch(Number(val))}
+              placeholder={branches.length === 0 ? "Cargando..." : "Seleccione sucursal"}
+              themeColor="#10b981"
+              className="bg-transparent text-slate-700 font-medium"
+            />
+          </div>
           </div>
         </div>
       </div>

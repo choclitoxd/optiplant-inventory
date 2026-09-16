@@ -9,6 +9,7 @@ export const AlertsPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('Actualizado justo ahora');
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('gerente@optiplant.com');
 
   const fetchAlerts = async () => {
     try {
@@ -35,7 +36,7 @@ export const AlertsPage: React.FC = () => {
   const handleSendReport = async () => {
     setSendingEmail(true);
     try {
-      await alertService.sendEmailReport('gerente@optiplant.com');
+      await alertService.sendEmailReport(recipientEmail);
       alert('Reporte enviado con éxito a la gerencia.');
     } catch (error) {
       console.error("Error sending email:", error);
@@ -215,15 +216,20 @@ export const AlertsPage: React.FC = () => {
               <div className="space-y-5">
                 <div>
                   <label className="block text-[11px] font-bold text-indigo-200 mb-2 uppercase tracking-wider">Destinatario</label>
-                  <div className="bg-white/10 border border-white/20 rounded-[14px] p-3 backdrop-blur-sm text-[14px] text-white font-medium">
-                    gerente@optiplant.com
-                  </div>
+                  <input 
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 rounded-[14px] p-3 backdrop-blur-sm text-[14px] text-white font-medium outline-none focus:border-white/40 focus:bg-white/20 transition-colors placeholder:text-white/50"
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-indigo-200 mb-2 uppercase tracking-wider">Mensaje Adjunto</label>
-                  <div className="bg-white/10 border border-white/20 rounded-[14px] p-4 backdrop-blur-sm text-[14px] text-white/90 leading-relaxed">
-                    Hola, se adjunta el reporte automático de stock crítico en {alerts.length} productos. Se recomienda iniciar órdenes de compra...
-                  </div>
+                  <textarea 
+                    defaultValue={`Hola, se adjunta el reporte automático de stock crítico en ${alerts.length} productos. Se recomienda iniciar órdenes de compra...`}
+                    rows={3}
+                    className="w-full bg-white/10 border border-white/20 rounded-[14px] p-4 backdrop-blur-sm text-[14px] text-white/90 leading-relaxed outline-none focus:border-white/40 focus:bg-white/20 transition-colors resize-none custom-scrollbar placeholder:text-white/50"
+                  ></textarea>
                 </div>
               </div>
             </div>

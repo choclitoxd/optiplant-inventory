@@ -5,6 +5,7 @@ import type { TransferDetailRequest } from '../../types/transfer';
 import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { transferService } from '../../services/transferService';
+import { Dropdown } from '../ui/Dropdown';
 
 export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -108,24 +109,25 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       {/* Columna Izquierda (Ruta e Inventario) */}
       <div className="xl:col-span-8 flex flex-col gap-6 h-full">
         {/* Módulo de Ruta (Flujo Visual) */}
-        <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 xl:p-8 shrink-0">
+        <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 xl:p-8 shrink-0 relative z-10">
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Ruta de Despacho</h2>
         
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Origen */}
-          <div className="w-full md:flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-5 relative overflow-hidden group focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
-            <div className="absolute top-0 left-0 w-1 h-full bg-slate-300 group-focus-within:bg-blue-400 transition-colors"></div>
+          <div className="w-full md:flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-5 relative group focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
+            <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-slate-300 group-focus-within:bg-blue-400 transition-colors"></div>
             <div className="flex items-center gap-3 mb-2">
               <Buildings size={20} className="text-slate-500" weight="duotone" />
               <label className="text-sm font-bold text-slate-600">Sucursal Origen</label>
             </div>
-            <select 
-              value={originBranchId} 
-              onChange={e => setOriginBranchId(Number(e.target.value))} 
-              className="w-full bg-transparent text-slate-800 font-bold text-lg outline-none cursor-pointer appearance-none"
-            >
-              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            <Dropdown
+              options={branches.map(b => ({ value: b.id as number, label: b.name }))}
+              value={originBranchId || ''}
+              onChange={(val) => setOriginBranchId(Number(val))}
+              placeholder="Origen"
+              themeColor="#3b82f6"
+              className="w-full font-bold text-lg"
+            />
           </div>
 
           {/* Flecha Flujo */}
@@ -138,19 +140,20 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           </div>
 
           {/* Destino */}
-          <div className="w-full md:flex-1 bg-blue-50/50 border border-blue-100 rounded-2xl p-5 relative overflow-hidden group focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-            <div className="absolute top-0 left-0 w-1 h-full bg-blue-300 group-focus-within:bg-blue-500 transition-colors"></div>
+          <div className="w-full md:flex-1 bg-blue-50/50 border border-blue-100 rounded-2xl p-5 relative group focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+            <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl bg-blue-300 group-focus-within:bg-blue-500 transition-colors"></div>
             <div className="flex items-center gap-3 mb-2">
               <Buildings size={20} className="text-blue-600" weight="duotone" />
               <label className="text-sm font-bold text-blue-800">Sucursal Destino</label>
             </div>
-            <select 
-              value={destBranchId} 
-              onChange={e => setDestBranchId(Number(e.target.value))} 
-              className="w-full bg-transparent text-blue-900 font-bold text-lg outline-none cursor-pointer appearance-none"
-            >
-              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            <Dropdown
+              options={branches.map(b => ({ value: b.id as number, label: b.name }))}
+              value={destBranchId || ''}
+              onChange={(val) => setDestBranchId(Number(val))}
+              placeholder="Destino"
+              themeColor="#2563eb"
+              className="w-full font-bold text-lg"
+            />
           </div>
         </div>
         

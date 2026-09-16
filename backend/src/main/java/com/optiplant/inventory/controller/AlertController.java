@@ -43,8 +43,8 @@ public class AlertController {
     @Operation(summary = "Forzar envío manual del informe por correo", description = "Dispara de inmediato el reporte HTML por correo electrónico a los administradores")
     @ApiResponse(responseCode = "200", description = "El reporte se encoló exitosamente")
     @PostMapping("/send-email-report")
-    public ResponseEntity<String> sendEmailReport() {
-        alertService.manualSendEmailReport();
-        return ResponseEntity.ok("El reporte de alertas de stock se está enviando de forma asíncrona.");
+    public ResponseEntity<String> sendEmailReport(@RequestParam(required = false) String email) {
+        alertService.manualSendEmailReport(email);
+        return ResponseEntity.ok("El reporte de alertas de stock se está enviando de forma asíncrona a " + (email != null ? email : "el administrador."));
     }
 }

@@ -46,7 +46,7 @@ class AlertServiceTest {
         when(inventoryRepository.findLowStockInventories()).thenReturn(List.of(critical));
 
         // When
-        alertService.manualSendEmailReport();
+        alertService.manualSendEmailReport("test@example.com");
 
         // Then
         verify(emailService, times(1)).sendLowStockAlertEmail(any(), anyList());

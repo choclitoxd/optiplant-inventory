@@ -1,17 +1,10 @@
 spring:
   application:
     name: optiplant
-  mail:
-    host: smtp.mailtrap.io
-    port: 2525
-    username: my-username
-    password: my-password
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+
+app:
+  mailtrap:
+    token: "aae51cae7dae2428a4ff4fa9697559be"
   sql:
     init:
       mode: always

@@ -1,10 +1,12 @@
 package com.optiplant.inventory.service;
 
 import com.optiplant.inventory.domain.dto.StockAlertDTO;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import io.mailtrap.client.MailtrapClient;
+import io.mailtrap.config.MailtrapConfig;
+import io.mailtrap.factory.MailtrapClientFactory;
+import io.mailtrap.model.request.emails.Address;
+import io.mailtrap.model.request.emails.MailtrapMail;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -13,30 +15,41 @@ import java.util.List;
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    @Value("${app.mailtrap.token:}")
+    private String mailtrapToken;
 
     @Async
     public void sendLowStockAlertEmail(String recipient, List<StockAlertDTO> alerts) {
         if (alerts == null || alerts.isEmpty()) return;
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            // Si no hay token de Mailtrap configurado, usamos un log como fallback
+            if (mailtrapToken == null || mailtrapToken.trim().isEmpty()) {
+                System.out.println("No hay token de Mailtrap configurado. Simulación de envío a: " + recipient);
+                return;
+            }
 
-            helper.setTo(recipient);
-            helper.setSubject("⚠️ ALERTA DE STOCK: " + alerts.size() + " productos requieren atención");
-            
+            final MailtrapConfig config = new MailtrapConfig.Builder()
+                .token(mailtrapToken)
+                .build();
+
+            final MailtrapClient client = MailtrapClientFactory.createMailtrapClient(config);
+
             String htmlContent = buildHtmlEmailContent(alerts);
-            helper.setText(htmlContent, true);
 
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            // Se captura para no bloquear la ejecución del hilo
-            System.err.println("Error al enviar el correo de alertas: " + e.getMessage());
+            final MailtrapMail mail = MailtrapMail.builder()
+                .from(new Address("hello@demomailtrap.co", "OptiPlant System"))
+                .to(List.of(new Address(recipient)))
+                .subject("⚠️ ALERTA DE STOCK: " + alerts.size() + " productos requieren atención")
+                .html(htmlContent)
+                .category("Integration Test")
+                .build();
+
+            System.out.println("Enviando correo con Mailtrap SDK a: " + recipient);
+            System.out.println(client.send(mail));
+        } catch (Exception e) {
+            System.err.println("Error inesperado al enviar el correo con Mailtrap: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

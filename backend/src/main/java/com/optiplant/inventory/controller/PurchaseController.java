@@ -20,4 +20,9 @@ public class PurchaseController {
     public PurchaseResponseDTO registerPurchase(@Valid @RequestBody PurchaseRequestDTO request) {
         return purchaseService.registerPurchase(request);
     }
+
+    @GetMapping
+    public java.util.List<PurchaseResponseDTO> getAllPurchases() {
+        return purchaseService.getAllPurchases();
+    }
 }

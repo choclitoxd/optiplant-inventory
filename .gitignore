@@ -26,6 +26,9 @@ yarn-error.log*
 *.war
 *.ear
 
+# Configuration files with secrets
+backend/src/main/resources/application.yml
+
 # Logs
 logs
 *.log
