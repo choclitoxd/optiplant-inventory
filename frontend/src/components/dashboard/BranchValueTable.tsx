@@ -1,4 +1,5 @@
 import type { StockValueByBranch } from '../../types/dashboard';
+import { Buildings } from '@phosphor-icons/react';
 
 export const BranchValueTable = ({ data, totalValue }: { data: StockValueByBranch[], totalValue: number }) => {
   const formatCurrency = (val: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(val);
@@ -7,7 +8,7 @@ export const BranchValueTable = ({ data, totalValue }: { data: StockValueByBranc
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-700">
       <div className="p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          🏢 Valorización por Sucursal
+          <Buildings size={20} weight="duotone" className="text-indigo-500" /> Valorización por Sucursal
         </h2>
         <p className="text-sm text-slate-500 mt-1">Distribución del capital invertido en inventario local.</p>
       </div>

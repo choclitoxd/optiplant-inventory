@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { alertService } from '../../services/alertService';
+import { Envelope, CheckCircle, XCircle } from '@phosphor-icons/react';
 
 interface EmailReportModalProps {
   isOpen: boolean;
@@ -51,12 +52,12 @@ export const EmailReportModal = ({ isOpen, onClose }: EmailReportModalProps) => 
 
           {status === 'success' && (
             <div className="mb-4 p-3 bg-emerald-50 text-emerald-600 rounded-lg text-sm font-medium border border-emerald-100">
-              ✅ Reporte enviado exitosamente.
+              <CheckCircle size={18} weight="bold" className="inline mr-1" /> Reporte enviado exitosamente.
             </div>
           )}
           {status === 'error' && (
             <div className="mb-4 p-3 bg-rose-50 text-rose-600 rounded-lg text-sm font-medium border border-rose-100">
-              ❌ Ocurrió un error al enviar el correo.
+              <XCircle size={18} weight="bold" className="inline mr-1" /> Ocurrió un error al enviar el correo.
             </div>
           )}
 
@@ -74,7 +75,7 @@ export const EmailReportModal = ({ isOpen, onClose }: EmailReportModalProps) => 
               disabled={status === 'loading'}
               className="px-5 py-2.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              {status === 'loading' ? 'Enviando...' : '✉️ Enviar Reporte'}
+              {status === 'loading' ? 'Enviando...' : <><Envelope size={18} weight="bold" className="mr-1" /> Enviar Reporte</>}
             </button>
           </div>
         </form>

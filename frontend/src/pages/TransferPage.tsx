@@ -17,16 +17,16 @@ export const TransferPage = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 font-sans selection:bg-blue-200">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+    <div className="w-full h-full font-sans selection:bg-blue-200">
+      <div className="w-full flex flex-col h-full">
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
             Logística y Transferencias
           </h1>
           <p className="text-slate-500 mt-2 font-medium">Gestión de envíos entre sucursales de OptiPlant Inventory</p>
         </header>
 
-        <div className="flex flex-wrap gap-2 mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
+        <div className="flex flex-wrap gap-2 mb-6 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
           {navs.map((nav) => (
             <button
               key={nav.id}
@@ -42,7 +42,7 @@ export const TransferPage = () => {
           ))}
         </div>
 
-        <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
+        <div className="animate-in slide-in-from-bottom-2 fade-in duration-300 w-full flex-1">
           {activeTab === 'send' && <TransferSendForm onSuccess={handleSendSuccess} />}
           {activeTab === 'history' && <TransferHistory refreshTrigger={refreshKey} />}
         </div>

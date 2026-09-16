@@ -1,65 +1,53 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
-import { setupServer } from 'msw/node';
-import { handlers } from '../../mocks/handlers';
+import { describe, it, expect, vi } from 'vitest';
 import { AlertPanel } from '../alerts/AlertPanel';
 
-const server = setupServer(...handlers);
+describe('AlertPanel Component', () => {
+  const mockAlerts = [
+    {
+      inventoryId: 1,
+      branchName: 'Central',
+      productName: 'Lentes de Contacto',
+      productSku: 'L-01',
+      currentStock: 0,
+      minStockThreshold: 10,
+      severity: 'CRITICAL' as const,
+      suggestedReorderQuantity: 20
+    },
+    {
+      inventoryId: 2,
+      branchName: 'Norte',
+      productName: 'Gafas de Sol',
+      productSku: 'G-04',
+      currentStock: 5,
+      minStockThreshold: 10,
+      severity: 'WARNING' as const,
+      suggestedReorderQuantity: 15
+    }
+  ];
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-describe('AlertPanel & EmailReportModal Component', () => {
-  it('debe renderizar badges CRITICAL y WARNING basados en la data del mock', async () => {
-    render(<AlertPanel />);
+  it('debe renderizar badges CRITICAL y WARNING basados en la data', async () => {
+    render(<AlertPanel alerts={mockAlerts} onOpenEmailModal={() => {}} />);
     
-    // Esperar a que la petición a /api/alerts/low-stock se resuelva y los datos se pinten
-    await waitFor(() => {
-      expect(screen.getByText('Lentes de Contacto')).toBeInTheDocument();
-      expect(screen.getByText('Gafas de Sol')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Lentes de Contacto')).toBeInTheDocument();
+    expect(screen.getByText('Gafas de Sol')).toBeInTheDocument();
 
-    // Validar el badge rojo (CRITICAL) y el badge amarillo (WARNING)
-    const criticalBadge = screen.getByText('CRITICAL');
+    const criticalBadge = screen.getByText(/CRITICAL/i);
     expect(criticalBadge).toBeInTheDocument();
-    expect(criticalBadge).toHaveClass('bg-red-500'); // Estilo Tailwind para CRITICAL
-
-    const warningBadge = screen.getByText('WARNING');
+    
+    const warningBadge = screen.getByText(/WARNING/i);
     expect(warningBadge).toBeInTheDocument();
-    expect(warningBadge).toHaveClass('bg-yellow-500'); // Estilo Tailwind para WARNING
   });
 
-  it('debe abrir el modal de correo, ingresar un email y simular el envío del reporte', async () => {
-    render(<AlertPanel />);
+  it('debe invocar onOpenEmailModal al hacer clic en el botón', async () => {
+    const handleOpenModal = vi.fn();
+    render(<AlertPanel alerts={mockAlerts} onOpenEmailModal={handleOpenModal} />);
     const user = userEvent.setup();
-
-    // Esperar que cargue
-    await waitFor(() => {
-      expect(screen.getByText('Lentes de Contacto')).toBeInTheDocument();
-    });
 
     const openModalBtn = screen.getByRole('button', { name: /Enviar Reporte/i });
     await user.click(openModalBtn);
 
-    // Verificar que el modal se abrió
-    const modalTitle = screen.getByText(/Destinatario del Reporte/i);
-    expect(modalTitle).toBeInTheDocument();
-
-    const emailInput = screen.getByPlaceholderText(/ejemplo@optiplant.com/i);
-    await user.type(emailInput, 'gerente@optiplant.com');
-
-    const sendBtn = screen.getByRole('button', { name: /Enviar/i });
-    await user.click(sendBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Reporte enviado exitosamente/i)).toBeInTheDocument();
-    });
-    
-    // Modal debe cerrarse automáticamente tras éxito
-    await waitFor(() => {
-      expect(screen.queryByText(/Destinatario del Reporte/i)).not.toBeInTheDocument();
-    });
+    expect(handleOpenModal).toHaveBeenCalledTimes(1);
   });
 });

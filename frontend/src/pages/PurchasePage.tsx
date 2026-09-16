@@ -7,14 +7,16 @@ export const PurchasePage = () => {
   const [activeTab, setActiveTab] = useState<'form' | 'history' | 'suppliers'>('form');
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
+    <div className="p-8">
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestión de Compras</h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
+            Recepción de Compras
+          </h1>
           <p className="text-slate-500 mt-2 text-sm max-w-xl">
             Registra entradas de inventario desde proveedores. El Costo Promedio Ponderado (CPP) se calculará automáticamente en el sistema central.
           </p>
-        </div>
+        </header>
       </div>
 
       <div className="flex p-1 bg-slate-100/80 rounded-lg mb-8 w-max border border-slate-200 shadow-inner">

@@ -44,7 +44,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:8080
+        - VITE_API_URL=http://localhost:8080/api
     container_name: optiplant-frontend
     restart: unless-stopped
     ports:

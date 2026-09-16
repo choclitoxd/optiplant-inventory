@@ -1,14 +1,16 @@
+import React from 'react';
 import type { DashboardMetrics } from '../../types/dashboard';
+import { CurrencyCircleDollar, TrendUp, ShoppingCart, Package, ListDashes, Buildings } from '@phosphor-icons/react';
 
 interface KPICardProps {
   title: string;
   value: string | number;
   subtitle?: string;
   color: 'blue' | 'emerald' | 'amber' | 'purple' | 'rose' | 'slate';
-  icon: string;
+  icon: React.ElementType;
 }
 
-const KPICard = ({ title, value, subtitle, color, icon }: KPICardProps) => {
+const KPICard = ({ title, value, subtitle, color, icon: Icon }: KPICardProps) => {
   const colorStyles = {
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
     emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -20,8 +22,8 @@ const KPICard = ({ title, value, subtitle, color, icon }: KPICardProps) => {
 
   return (
     <div className={`p-6 rounded-2xl border ${colorStyles[color]} shadow-sm flex items-center gap-5 transition-transform hover:-translate-y-1 hover:shadow-md duration-300`}>
-      <div className={`text-4xl p-4 rounded-full bg-white bg-opacity-60 shadow-sm border border-white/50`}>
-        {icon}
+      <div className={`p-4 rounded-full bg-white bg-opacity-60 shadow-sm border border-white/50 text-current flex items-center justify-center`}>
+        <Icon weight="duotone" size={32} />
       </div>
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider opacity-80">{title}</h3>
@@ -42,37 +44,37 @@ export const KPICards = ({ metrics }: { metrics: DashboardMetrics }) => {
         value={formatCurrency(metrics.totalInventoryValue)} 
         subtitle="Global en todas las sucursales"
         color="purple" 
-        icon="💎" 
+        icon={CurrencyCircleDollar} 
       />
       <KPICard 
         title="Ventas del Mes" 
         value={formatCurrency(metrics.totalMonthlySales)} 
         color="emerald" 
-        icon="📈" 
+        icon={TrendUp} 
       />
       <KPICard 
         title="Compras del Mes" 
         value={formatCurrency(metrics.totalMonthlyPurchases)} 
         color="amber" 
-        icon="🛒" 
+        icon={ShoppingCart} 
       />
       <KPICard 
         title="Unidades en Stock" 
         value={metrics.totalStockUnits.toLocaleString()} 
         color="blue" 
-        icon="📦" 
+        icon={Package} 
       />
       <KPICard 
         title="Productos en Catálogo" 
         value={metrics.totalProducts} 
         color="slate" 
-        icon="📑" 
+        icon={ListDashes} 
       />
       <KPICard 
         title="Sucursales Activas" 
         value={metrics.totalBranches} 
         color="rose" 
-        icon="🏢" 
+        icon={Buildings} 
       />
     </div>
   );

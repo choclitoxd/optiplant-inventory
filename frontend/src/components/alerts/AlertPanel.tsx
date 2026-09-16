@@ -1,4 +1,5 @@
 import type { StockAlert } from '../../types/stockAlert';
+import { Envelope, WarningCircle, CheckCircle, Circle } from '@phosphor-icons/react';
 
 interface AlertPanelProps {
   alerts: StockAlert[];
@@ -14,7 +15,7 @@ export const AlertPanel = ({ alerts, onOpenEmailModal }: AlertPanelProps) => {
       <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            🚨 Alertas Inteligentes de Stock
+            <WarningCircle size={24} weight="duotone" className="text-rose-500" /> Alertas Inteligentes de Stock
           </h2>
           <div className="flex items-center gap-4 mt-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200">
@@ -31,13 +32,13 @@ export const AlertPanel = ({ alerts, onOpenEmailModal }: AlertPanelProps) => {
           onClick={onOpenEmailModal}
           className="flex items-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-700 shadow-sm transition-all"
         >
-          ✉️ Enviar Reporte por Correo
+          <Envelope size={18} weight="bold" /> Enviar Reporte por Correo
         </button>
       </div>
 
       {alerts.length === 0 ? (
         <div className="p-12 text-center flex flex-col items-center">
-          <span className="text-5xl mb-4">✅</span>
+          <CheckCircle size={48} weight="duotone" className="text-emerald-500 mb-4" />
           <h3 className="text-lg font-bold text-slate-700">El inventario está sano</h3>
           <p className="text-slate-500">No se detectaron niveles bajos de stock en la red.</p>
         </div>
@@ -60,11 +61,11 @@ export const AlertPanel = ({ alerts, onOpenEmailModal }: AlertPanelProps) => {
                   <td className="px-6 py-4">
                     {alert.severity === 'CRITICAL' ? (
                       <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-bold border border-rose-100">
-                        🔴 CRITICAL
+                        <Circle size={10} weight="fill" className="mr-1.5" /> CRITICAL
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
-                        🟡 WARNING
+                        <Circle size={10} weight="fill" className="mr-1.5" /> WARNING
                       </span>
                     )}
                   </td>

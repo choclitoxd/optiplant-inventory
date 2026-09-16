@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { TransferResponse } from '../../types/transfer';
 import { transferService } from '../../services/transferService';
+import { Warning } from '@phosphor-icons/react';
 
 export const TransferReceiveForm = ({ transfer, onSuccess, onCancel }: { transfer: TransferResponse, onSuccess: () => void, onCancel: () => void }) => {
   const [responsibleUser, setResponsibleUser] = useState('');
@@ -95,7 +96,7 @@ export const TransferReceiveForm = ({ transfer, onSuccess, onCancel }: { transfe
 
           {hasDiscrepancy && (
             <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
-              ⚠️ Atención: Se han detectado discrepancias. La orden se marcará como PARCIAL y se generará un asiento de Faltante en el Kardex para auditoría.
+              <Warning size={16} weight="bold" className="inline-block mr-1 -mt-0.5" /> Atención: Se han detectado discrepancias. La orden se marcará como PARCIAL y se generará un asiento de Faltante en el Kardex para auditoría.
             </div>
           )}
         </div>

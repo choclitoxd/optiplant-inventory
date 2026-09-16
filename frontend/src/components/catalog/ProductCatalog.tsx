@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Product, ProductRequest } from '../../types';
 import { productService } from '../../services/productService';
+import { MagnifyingGlass, Plus } from '@phosphor-icons/react';
 
 export const ProductCatalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -37,18 +38,21 @@ export const ProductCatalog = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-slate-800 tracking-tight">Catálogo Global</h2>
         <div className="flex items-center gap-4 w-full md:w-auto">
-          <input 
-            type="text" 
-            placeholder="Buscar por SKU o Nombre..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-64 px-4 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
-          />
+          <div className="relative w-full md:w-64">
+            <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Buscar por SKU o Nombre..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+            />
+          </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
+            className="whitespace-nowrap flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
           >
-            + Nuevo Producto
+            <Plus size={16} weight="bold" /> Nuevo Producto
           </button>
         </div>
       </div>

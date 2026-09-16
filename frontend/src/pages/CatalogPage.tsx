@@ -13,16 +13,16 @@ export const CatalogPage = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 font-sans selection:bg-indigo-200">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+    <div className="w-full h-full font-sans selection:bg-indigo-200">
+      <div className="w-full flex flex-col h-full">
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
             OptiPlant Inventory
           </h1>
           <p className="text-slate-500 mt-2 font-medium">Gestión Multi-Sucursal MVP</p>
         </header>
 
-        <div className="flex flex-wrap gap-2 mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
+        <div className="flex flex-wrap gap-2 mb-6 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
           {navs.map((nav) => (
             <button
               key={nav.id}
@@ -38,7 +38,7 @@ export const CatalogPage = () => {
           ))}
         </div>
 
-        <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
+        <div className="animate-in slide-in-from-bottom-2 fade-in duration-300 w-full flex-1">
           {activeTab === 'catalog' && <ProductCatalog />}
           {activeTab === 'branches' && <BranchManager />}
           {activeTab === 'stock' && <BranchStockView />}

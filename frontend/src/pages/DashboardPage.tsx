@@ -4,6 +4,7 @@ import { dashboardService } from '../services/dashboardService';
 import { KPICards } from '../components/dashboard/KPICards';
 import { BranchValueTable } from '../components/dashboard/BranchValueTable';
 import { TopSellingTable } from '../components/dashboard/TopSellingTable';
+import { ArrowsClockwise } from '@phosphor-icons/react';
 
 export const DashboardPage = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -37,11 +38,11 @@ export const DashboardPage = () => {
   }, [refreshKey]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 font-sans selection:bg-blue-200">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="w-full h-full font-sans selection:bg-blue-200">
+      <div className="w-full flex flex-col h-full">
+        <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               Panel de Análisis
             </h1>
             <p className="text-slate-500 mt-2 font-medium">Resumen ejecutivo y estado del capital inmovilizado</p>
@@ -51,7 +52,8 @@ export const DashboardPage = () => {
             disabled={loading}
             className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all disabled:opacity-50"
           >
-            {loading ? 'Actualizando...' : '↻ Actualizar Datos'}
+            <ArrowsClockwise size={18} weight="bold" className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Actualizando...' : 'Actualizar Datos'}
           </button>
         </header>
 

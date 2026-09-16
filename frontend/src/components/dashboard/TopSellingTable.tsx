@@ -1,4 +1,5 @@
 import type { TopSellingProduct } from '../../types/dashboard';
+import { Trophy } from '@phosphor-icons/react';
 
 export const TopSellingTable = ({ data }: { data: TopSellingProduct[] }) => {
   const formatCurrency = (val: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(val);
@@ -7,7 +8,7 @@ export const TopSellingTable = ({ data }: { data: TopSellingProduct[] }) => {
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-700 delay-150 fill-mode-both">
       <div className="p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          🔥 Top Productos Más Vendidos
+          <Trophy size={20} weight="duotone" className="text-amber-500" /> Top Productos Más Vendidos
         </h2>
         <p className="text-sm text-slate-500 mt-1">Ranking de productos con mayor volumen de unidades vendidas.</p>
       </div>

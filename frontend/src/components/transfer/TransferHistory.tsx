@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Truck, Clock, Checks, XCircle, Path, DownloadSimple, User, Storefront, MagnifyingGlass } from '@phosphor-icons/react';
 import type { Branch } from '../../types';
 import type { TransferResponse } from '../../types/transfer';
 import { branchService } from '../../services/branchService';
@@ -10,6 +11,7 @@ export const TransferHistory = ({ refreshTrigger }: { refreshTrigger: number }) 
   const [transfers, setTransfers] = useState<TransferResponse[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
   const [receivingTransfer, setReceivingTransfer] = useState<TransferResponse | null>(null);
 
   useEffect(() => {
@@ -32,95 +34,204 @@ export const TransferHistory = ({ refreshTrigger }: { refreshTrigger: number }) 
     loadTransfers();
   }, [selectedBranch, refreshTrigger]);
 
-  const getStatusBadge = (status: string) => {
+  const filteredTransfers = transfers.filter(t => 
+    t.originBranchName.toLowerCase().includes(search.toLowerCase()) || 
+    t.destinationBranchName.toLowerCase().includes(search.toLowerCase()) ||
+    t.responsibleUser.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'IN_TRANSIT': return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold tracking-wide">EN TRÁNSITO</span>;
-      case 'COMPLETED': return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold tracking-wide">COMPLETA</span>;
-      case 'PARTIAL': return <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold tracking-wide">PARCIAL (MERMA)</span>;
-      case 'CANCELLED': return <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold tracking-wide">CANCELADA</span>;
-      default: return null;
+      case 'IN_TRANSIT': 
+        return { 
+          icon: <Truck size={14} weight="bold" />, 
+          text: 'EN TRÁNSITO', 
+          color: 'bg-blue-100 text-blue-700 border-blue-200',
+          line: 'border-blue-400 border-dashed',
+          marker: 'bg-blue-400'
+        };
+      case 'COMPLETED': 
+        return { 
+          icon: <Checks size={14} weight="bold" />, 
+          text: 'COMPLETADA', 
+          color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          line: 'border-emerald-500 border-solid',
+          marker: 'bg-emerald-500'
+        };
+      case 'PARTIAL': 
+        return { 
+          icon: <Clock size={14} weight="bold" />, 
+          text: 'PARCIAL', 
+          color: 'bg-amber-100 text-amber-700 border-amber-200',
+          line: 'border-amber-400 border-dashed',
+          marker: 'bg-amber-400'
+        };
+      case 'CANCELLED': 
+        return { 
+          icon: <XCircle size={14} weight="bold" />, 
+          text: 'CANCELADA', 
+          color: 'bg-rose-100 text-rose-700 border-rose-200',
+          line: 'border-rose-300 border-solid',
+          marker: 'bg-rose-500'
+        };
+      default: 
+        return { 
+          icon: <Clock size={14} weight="bold" />, 
+          text: 'DESCONOCIDO', 
+          color: 'bg-slate-100 text-slate-700 border-slate-200',
+          line: 'border-slate-300 border-dashed',
+          marker: 'bg-slate-400'
+        };
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 animate-in fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className="text-xl font-bold text-slate-800">Historial de Transferencias</h2>
-        <select 
-          className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl p-2.5 outline-none font-medium min-w-[200px]"
-          value={selectedBranch}
-          onChange={(e) => setSelectedBranch(Number(e.target.value))}
-        >
-          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </select>
+    <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 xl:p-8 animate-in fade-in duration-300">
+      
+      {/* Header & Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-100 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+            <Path size={24} weight="duotone" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight">Seguimiento de Transferencias</h2>
+            <p className="text-sm text-slate-500 font-medium">Monitoreo y recepción de envíos.</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+            <MagnifyingGlass size={18} className="text-slate-400" weight="bold" />
+            <input 
+              type="text" 
+              placeholder="Buscar origen, destino..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full sm:w-48 bg-transparent border-none text-slate-700 text-sm font-medium p-2.5 outline-none placeholder:text-slate-400"
+            />
+          </div>
+
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+            <Storefront size={18} className="text-slate-400" weight="bold" />
+            <select 
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(Number(e.target.value))}
+              className="w-full sm:w-48 bg-transparent text-slate-700 text-sm rounded-xl outline-none font-medium p-2.5 cursor-pointer appearance-none"
+            >
+              {branches.length === 0 && <option value={0}>Cargando...</option>}
+              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+        </div>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-slate-400 font-medium animate-pulse">Cargando movimientos...</div>
-      ) : transfers.length === 0 ? (
-        <div className="py-20 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">No hay transferencias registradas.</div>
+        <div className="h-64 flex flex-col items-center justify-center text-blue-600">
+          <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+          <p className="font-bold text-slate-500">Cargando seguimiento...</p>
+        </div>
+      ) : filteredTransfers.length === 0 ? (
+        <div className="h-64 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <Truck size={48} weight="duotone" className="text-slate-300 mb-3" />
+          <p className="font-medium text-slate-500">No hay transferencias registradas.</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {transfers.map((transfer) => {
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {filteredTransfers.map((transfer) => {
             const isDestination = transfer.destinationBranchId === selectedBranch;
             const canReceive = isDestination && transfer.status === 'IN_TRANSIT';
+            const statusStyle = getStatusConfig(transfer.status);
 
             return (
-              <div key={transfer.id} className="border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
-                <div className="bg-slate-50 px-5 py-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Origen</span>
-                      <span className="font-semibold text-slate-800">{transfer.originBranchName}</span>
-                    </div>
-                    <div className="text-slate-300">➔</div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Destino</span>
-                      <span className="font-semibold text-slate-800">{transfer.destinationBranchName}</span>
+              <div key={transfer.id} className="bg-white border border-slate-200 rounded-2xl hover:border-blue-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group">
+                
+                {/* Journey Timeline */}
+                <div className="bg-slate-50/80 p-5 border-b border-slate-100">
+                  <div className="flex justify-between items-center mb-6">
+                    <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${statusStyle.color}`}>
+                      {statusStyle.icon}
+                      {statusStyle.text}
+                    </span>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ID Transferencia</span>
+                      <span className="text-sm font-black text-slate-700">TR-{transfer.id.toString().padStart(5, '0')}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden md:block">
-                      <span className="text-xs text-slate-500 block">Enviado: {new Date(transfer.sendDate).toLocaleDateString()}</span>
-                      <span className="text-xs font-medium text-slate-700 block max-w-[200px] truncate" title={transfer.responsibleUser}>{transfer.responsibleUser}</span>
+
+                  <div className="flex items-center justify-between relative px-2">
+                    {/* Línea conectora */}
+                    <div className={`absolute top-1/2 left-8 right-8 h-0 border-t-2 ${statusStyle.line} -translate-y-1/2 z-0`}></div>
+                    
+                    {/* Nodo Origen */}
+                    <div className="relative z-10 flex flex-col items-center bg-slate-50 px-2">
+                      <div className="w-4 h-4 rounded-full border-4 border-slate-300 bg-white mb-2"></div>
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Origen</span>
+                      <span className="font-bold text-slate-800 text-sm max-w-[100px] text-center truncate">{transfer.originBranchName}</span>
                     </div>
-                    {getStatusBadge(transfer.status)}
-                    {canReceive && (
-                      <button 
-                        onClick={() => setReceivingTransfer(transfer)}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition-colors"
-                      >
-                        Recibir
-                      </button>
-                    )}
+                    
+                    {/* Vehículo (En el medio) */}
+                    <div className="relative z-10 bg-slate-50 px-3">
+                      <div className={`p-2 rounded-full text-white ${statusStyle.marker} shadow-sm group-hover:scale-110 transition-transform`}>
+                        <Truck size={16} weight="fill" />
+                      </div>
+                    </div>
+
+                    {/* Nodo Destino */}
+                    <div className="relative z-10 flex flex-col items-center bg-slate-50 px-2">
+                      <div className={`w-4 h-4 rounded-full border-4 mb-2 ${transfer.status === 'COMPLETED' ? 'border-emerald-500 bg-white' : 'border-slate-300 bg-white'}`}></div>
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Destino</span>
+                      <span className="font-bold text-slate-800 text-sm max-w-[100px] text-center truncate">{transfer.destinationBranchName}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-200/60 text-slate-500">
+                    <User size={14} weight="bold" />
+                    <span className="text-xs font-semibold">Emitido por: {transfer.responsibleUser}</span>
+                    <span className="text-slate-300 ml-auto">•</span>
+                    <span className="text-xs font-medium">{new Date(transfer.sendDate).toLocaleDateString()}</span>
                   </div>
                 </div>
                 
-                <div className="p-5">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-slate-400 uppercase tracking-wider">
-                        <th className="pb-2 font-semibold">Producto</th>
-                        <th className="pb-2 font-semibold text-center">Cant. Enviada</th>
-                        <th className="pb-2 font-semibold text-center">Cant. Recibida</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {transfer.details.map(detail => (
-                        <tr key={detail.id}>
-                          <td className="py-2 font-medium text-slate-700">{detail.productName}</td>
-                          <td className="py-2 text-center text-slate-600 font-semibold">{detail.quantitySent}</td>
-                          <td className="py-2 text-center">
+                {/* Product Detail List */}
+                <div className="p-5 flex-1 flex flex-col bg-white">
+                  <div className="flex justify-between items-end mb-3">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cargamento</h4>
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">{transfer.details.length} Items</span>
+                  </div>
+                  
+                  <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar max-h-40 pr-2">
+                    {transfer.details.map(detail => (
+                      <div key={detail.id} className="flex justify-between items-center bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 hover:border-blue-100 transition-colors">
+                        <p className="font-semibold text-slate-700 text-sm truncate flex-1 pr-3">{detail.productName}</p>
+                        <div className="flex items-center gap-4 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Enviado</span>
+                            <span className="font-bold text-slate-600 text-sm">{detail.quantitySent}</span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Recibido</span>
                             {detail.quantityReceived !== null 
-                              ? <span className={`font-bold ${detail.quantityReceived < detail.quantitySent ? 'text-amber-500' : 'text-emerald-500'}`}>{detail.quantityReceived}</span>
-                              : <span className="text-slate-300">-</span>
+                              ? <span className={`font-bold text-sm ${detail.quantityReceived < detail.quantitySent ? 'text-amber-500' : 'text-emerald-500'}`}>{detail.quantityReceived}</span>
+                              : <span className="text-slate-300 font-black text-sm">-</span>
                             }
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {canReceive && (
+                    <button 
+                      onClick={() => setReceivingTransfer(transfer)}
+                      className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)] flex justify-center items-center gap-2"
+                    >
+                      <DownloadSimple size={18} weight="bold" />
+                      Registrar Recepción
+                    </button>
+                  )}
                 </div>
+
               </div>
             );
           })}
