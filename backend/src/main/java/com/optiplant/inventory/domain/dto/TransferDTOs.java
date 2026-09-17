@@ -13,7 +13,6 @@ public class TransferDTOs {
     public record TransferSendRequestDTO(
             @NotNull(message = "Origin branch ID is required") Long originBranchId,
             @NotNull(message = "Destination branch ID is required") Long destinationBranchId,
-            @NotEmpty(message = "Responsible user is required") String responsibleUser,
             @NotEmpty(message = "Transfer details cannot be empty") List<TransferDetailRequestDTO> details
     ) {}
 
@@ -24,7 +23,6 @@ public class TransferDTOs {
     ) {}
 
     public record TransferReceiveRequestDTO(
-            @NotEmpty(message = "Responsible user is required") String responsibleUser,
             @NotEmpty(message = "Transfer receive details cannot be empty") List<TransferReceiveDetailDTO> details
     ) {}
 

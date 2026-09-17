@@ -16,7 +16,6 @@ public class PurchaseDTOs {
     public record PurchaseRequestDTO(
         @NotNull Long branchId,
         @NotNull Long supplierId,
-        @NotBlank String responsibleUser,
         @NotEmpty List<PurchaseDetailRequestDTO> details
     ) {}
 

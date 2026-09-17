@@ -15,6 +15,9 @@ TRUNCATE TABLE supplier RESTART IDENTITY CASCADE;
 TRUNCATE TABLE inventory RESTART IDENTITY CASCADE;
 TRUNCATE TABLE product_cost_history RESTART IDENTITY CASCADE;
 TRUNCATE TABLE product RESTART IDENTITY CASCADE;
+TRUNCATE TABLE user_roles RESTART IDENTITY CASCADE;
+TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+TRUNCATE TABLE roles RESTART IDENTITY CASCADE;
 TRUNCATE TABLE branch RESTART IDENTITY CASCADE;
 
 -- 1. Sucursales
@@ -23,7 +26,26 @@ INSERT INTO branch (id, name, address, active, created_at, updated_at) VALUES
 (2, 'Sucursal Medellín - Poblado', 'Carrera 43A # 3-101, Medellín', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (3, 'Sucursal Cali - Sur', 'Avenida San Joaquín # 12-34, Cali', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- 2. Productos (Catálogo Vivero / Jardinería)
+-- 2. Roles
+INSERT INTO roles (id, name) VALUES 
+(1, 'ROLE_ADMIN'),
+(2, 'ROLE_BRANCH_MANAGER'),
+(3, 'ROLE_OPERATOR');
+
+-- 3. Usuarios (Contraseña: password123, hash BCrypt)
+    -- Hash utilizado: $2a$10$BIrV25uJolVYwrNm9A4RjOur.Fha16ovFVVaYQSTGDuqahb4E5eTy (válido para 'password123')
+    INSERT INTO users (id, username, email, password, full_name, branch_id, active) VALUES 
+    (1, 'admin', 'admin@optiplant.com', '$2a$10$BIrV25uJolVYwrNm9A4RjOur.Fha16ovFVVaYQSTGDuqahb4E5eTy', 'Administrador Principal', NULL, true),
+    (2, 'gerente_bogota', 'gerente.bog@optiplant.com', '$2a$10$BIrV25uJolVYwrNm9A4RjOur.Fha16ovFVVaYQSTGDuqahb4E5eTy', 'Gerente Bogotá', 1, true),
+    (3, 'cajero_bogota', 'cajero.bog@optiplant.com', '$2a$10$BIrV25uJolVYwrNm9A4RjOur.Fha16ovFVVaYQSTGDuqahb4E5eTy', 'Cajero Bogotá 1', 1, true);
+
+-- 4. User Roles
+INSERT INTO user_roles (user_id, role_id) VALUES 
+(1, 1), -- Admin
+(2, 2), -- Gerente
+(3, 3); -- Operador
+
+-- 5. Productos (Catálogo Vivero / Jardinería)
 INSERT INTO product (id, sku, name, description, unit_of_measure, base_price, weighted_average_cost, created_at, updated_at) VALUES 
 (1, 'VIV-FER-01', 'Fertilizante Orgánico Universal 1KG', 'Abono enriquecido para plantas de interior y exterior.', 'KG', 12.50, 8.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (2, 'VIV-TIE-02', 'Tierra Preparada Premium 5KG', 'Sustrato con perlita, fibra de coco y humus de lombriz.', 'Bolsa', 15.00, 10.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -32,22 +54,22 @@ INSERT INTO product (id, sku, name, description, unit_of_measure, base_price, we
 (5, 'VIV-HER-05', 'Tijeras de Podar Profesionales', 'Tijeras de acero inoxidable con mango ergonómico.', 'Unidad', 35.00, 22.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (6, 'VIV-SEM-06', 'Semillas de Lavanda', 'Sobre de semillas puras para clima templado.', 'Sobre', 5.00, 2.50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- 3. Proveedores
+-- 6. Proveedores
 INSERT INTO supplier (id, tax_id, company_name, contact_name, phone) VALUES 
 (1, 'NIT-900123456-1', 'AgroInsumos Nacionales S.A.', 'Carlos Restrepo', '3001234567'),
 (2, 'NIT-800987654-2', 'Cerámicas y Decoración SAS', 'María Giraldo', '3159876543');
 
--- 4. Compras (Histórico con Costos)
-INSERT INTO purchase (id, branch_id, supplier_id, responsible_user, purchase_date, total_amount, created_at) VALUES 
-(1, 1, 1, 'admin', CURRENT_TIMESTAMP - INTERVAL '30 days', 500.00, CURRENT_TIMESTAMP - INTERVAL '30 days'),
-(2, 2, 2, 'admin', CURRENT_TIMESTAMP - INTERVAL '15 days', 450.00, CURRENT_TIMESTAMP - INTERVAL '15 days');
+-- 7. Compras (Histórico con Costos) - Se usa user_id = 1 (admin)
+INSERT INTO purchase (id, branch_id, supplier_id, user_id, purchase_date, total_amount, created_at) VALUES 
+(1, 1, 1, 1, CURRENT_TIMESTAMP - INTERVAL '30 days', 500.00, CURRENT_TIMESTAMP - INTERVAL '30 days'),
+(2, 2, 2, 1, CURRENT_TIMESTAMP - INTERVAL '15 days', 450.00, CURRENT_TIMESTAMP - INTERVAL '15 days');
 
 INSERT INTO purchase_detail (purchase_id, product_id, quantity, unit_cost) VALUES 
 (1, 1, 50, 8.00),
 (1, 2, 10, 10.00),
 (2, 3, 30, 15.00);
 
--- 5. Inventario por Sucursal (Con estados Crítico, Advertencia y Normal)
+-- 8. Inventario por Sucursal (Con estados Crítico, Advertencia y Normal)
 -- Sucursal Bogotá
 INSERT INTO inventory (branch_id, product_id, stock, min_stock_threshold, version, last_updated) VALUES 
 (1, 1, 100, 20, 1, CURRENT_TIMESTAMP), -- Normal
@@ -66,32 +88,34 @@ INSERT INTO inventory (branch_id, product_id, stock, min_stock_threshold, versio
 (3, 2, 50, 15, 1, CURRENT_TIMESTAMP),  -- Normal
 (3, 4, 8, 10, 1, CURRENT_TIMESTAMP);   -- Advertencia
 
--- 6. Ventas POS Históricas
-INSERT INTO sale (id, branch_id, sale_date, total_amount, responsible_user, created_at) VALUES 
-(1, 1, CURRENT_TIMESTAMP - INTERVAL '5 days', 62.50, 'cajero1', CURRENT_TIMESTAMP - INTERVAL '5 days'),
-(2, 2, CURRENT_TIMESTAMP - INTERVAL '2 days', 90.00, 'cajero2', CURRENT_TIMESTAMP - INTERVAL '2 days');
+-- 9. Ventas POS Históricas - Se usa user_id = 3 (cajero_bogota) y user_id = 1 (admin)
+INSERT INTO sale (id, branch_id, sale_date, total_amount, user_id, created_at) VALUES 
+(1, 1, CURRENT_TIMESTAMP - INTERVAL '5 days', 62.50, 3, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+(2, 2, CURRENT_TIMESTAMP - INTERVAL '2 days', 90.00, 1, CURRENT_TIMESTAMP - INTERVAL '2 days');
 
 INSERT INTO sale_detail (sale_id, product_id, quantity, unit_price, subtotal) VALUES 
 (1, 1, 5, 12.50, 62.50),
 (2, 4, 2, 45.00, 90.00);
 
--- 7. Transferencias
+-- 10. Transferencias - Se usa user_id = 2 (gerente_bogota)
 -- Fase 1: Transferencia Completada Totalmente
-INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, responsible_user) VALUES 
-(1, 1, 2, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '8 days', 'COMPLETED', 'admin');
+INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, user_id) VALUES 
+(1, 1, 2, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '8 days', 'COMPLETED', 2);
 
 INSERT INTO transfer_detail (transfer_id, product_id, quantity_sent, quantity_received) VALUES 
 (1, 1, 20, 20);
 
 -- Fase 2: Transferencia Parcial con Mermas / Pérdidas (PARTIAL_RECEIPT)
-INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, responsible_user) VALUES 
-(2, 2, 3, CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '1 days', 'COMPLETED', 'admin');
+INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, user_id) VALUES 
+(2, 2, 3, CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '1 days', 'COMPLETED', 2);
 
 INSERT INTO transfer_detail (transfer_id, product_id, quantity_sent, quantity_received) VALUES 
 (2, 4, 10, 8); -- Se enviaron 10, pero solo llegaron 8 (2 se perdieron en logística)
 
 -- Reiniciar Secuencias
 SELECT setval('branch_id_seq', (SELECT MAX(id) FROM branch));
+SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('product_id_seq', (SELECT MAX(id) FROM product));
 SELECT setval('supplier_id_seq', (SELECT MAX(id) FROM supplier));
 SELECT setval('purchase_id_seq', (SELECT MAX(id) FROM purchase));

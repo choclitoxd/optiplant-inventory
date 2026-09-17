@@ -13,6 +13,11 @@ import com.optiplant.inventory.repository.InventoryRepository;
 import com.optiplant.inventory.repository.ProductRepository;
 import com.optiplant.inventory.repository.PurchaseRepository;
 import com.optiplant.inventory.repository.SupplierRepository;
+import com.optiplant.inventory.repository.UserRepository;
+import com.optiplant.inventory.domain.entity.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +42,7 @@ class PurchaseServiceTest {
     @Mock private SupplierRepository supplierRepository;
     @Mock private ProductRepository productRepository;
     @Mock private InventoryRepository inventoryRepository;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks
     private PurchaseService purchaseService;
@@ -49,7 +55,7 @@ class PurchaseServiceTest {
         Long productId = 1L;
 
         PurchaseDetailRequestDTO detail = new PurchaseDetailRequestDTO(productId, 10, new BigDecimal("120.00"));
-        PurchaseRequestDTO request = new PurchaseRequestDTO(branchId, supplierId, "comprador1", List.of(detail));
+        PurchaseRequestDTO request = new PurchaseRequestDTO(branchId, supplierId, List.of(detail));
 
         Branch branch = new Branch();
         branch.setId(branchId);
@@ -77,7 +83,20 @@ class PurchaseServiceTest {
         savedPurchase.setSupplier(supplier);
         savedPurchase.setBranch(branch);
         savedPurchase.setDetails(new ArrayList<>());
+        
+        User testUser = new User();
+        testUser.setUsername("testuser");
+        savedPurchase.setResponsibleUser(testUser);
+        
         when(purchaseRepository.save(any(Purchase.class))).thenReturn(savedPurchase);
+        
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("testuser");
+        SecurityContextHolder.setContext(securityContext);
+        
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
         // When
         PurchaseResponseDTO response = purchaseService.registerPurchase(request);

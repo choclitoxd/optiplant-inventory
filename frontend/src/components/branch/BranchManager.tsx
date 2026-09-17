@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Branch } from '../../types';
 import { branchService } from '../../services/branchService';
+import { useAuth } from '../../context/AuthContext';
+import { Role } from '../../types/auth';
 
 export const BranchManager = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.includes(Role.ADMIN);
+  
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,9 +29,11 @@ export const BranchManager = () => {
     <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-slate-800 tracking-tight">Sucursales</h2>
-        <button className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm">
-          + Nueva Sucursal
-        </button>
+        {isAdmin && (
+          <button className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm">
+            + Nueva Sucursal
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -46,11 +53,14 @@ export const BranchManager = () => {
                 </div>
                 <p className="text-sm text-slate-500 mt-2">{b.address || 'Sin dirección registrada'}</p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <button onClick={() => toggleStatus(b)} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${b.active ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}>
-                  {b.active ? 'Desactivar Sucursal' : 'Activar Sucursal'}
-                </button>
-              </div>
+              
+              {isAdmin && (
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <button onClick={() => toggleStatus(b)} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${b.active ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}>
+                    {b.active ? 'Desactivar Sucursal' : 'Activar Sucursal'}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

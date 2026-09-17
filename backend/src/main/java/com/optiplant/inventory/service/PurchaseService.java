@@ -4,6 +4,7 @@ import com.optiplant.inventory.domain.dto.PurchaseDTOs.*;
 import com.optiplant.inventory.domain.entity.*;
 import com.optiplant.inventory.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,13 @@ public class PurchaseService {
     private final BranchRepository branchRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final UserRepository userRepository;
+
+    private User getAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
+    }
 
     @Transactional
     public PurchaseResponseDTO registerPurchase(PurchaseRequestDTO request) {
@@ -28,7 +36,7 @@ public class PurchaseService {
             .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado"));
 
         Purchase purchase = Purchase.builder()
-            .branch(branch).supplier(supplier).responsibleUser(request.responsibleUser())
+            .branch(branch).supplier(supplier).responsibleUser(getAuthenticatedUser())
             .totalAmount(BigDecimal.ZERO)
             .build();
 
@@ -88,7 +96,7 @@ public class PurchaseService {
         return new PurchaseResponseDTO(
             purchase.getId(), purchase.getSupplier().getId(), purchase.getSupplier().getCompanyName(),
             purchase.getBranch().getId(), purchase.getPurchaseDate(), purchase.getTotalAmount(),
-            purchase.getResponsibleUser(), detailDTOs
+            purchase.getResponsibleUser().getUsername(), detailDTOs
         );
     }
 }

@@ -9,6 +9,11 @@ import com.optiplant.inventory.repository.BranchRepository;
 import com.optiplant.inventory.repository.InventoryRepository;
 import com.optiplant.inventory.repository.ProductRepository;
 import com.optiplant.inventory.repository.SaleRepository;
+import com.optiplant.inventory.repository.UserRepository;
+import com.optiplant.inventory.domain.entity.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +36,7 @@ class SaleServiceTest {
     @Mock private BranchRepository branchRepository;
     @Mock private ProductRepository productRepository;
     @Mock private InventoryRepository inventoryRepository;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks
     private SaleService saleService;
@@ -42,7 +48,7 @@ class SaleServiceTest {
         Long productId = 1L;
 
         SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 5);
-        SaleRequestDTO request = new SaleRequestDTO(branchId, "vendedor1", List.of(detail));
+        SaleRequestDTO request = new SaleRequestDTO(branchId, List.of(detail));
 
         Branch branch = new Branch();
         branch.setId(branchId);
@@ -63,7 +69,19 @@ class SaleServiceTest {
         savedSale.setBranch(branch);
         savedSale.setDetails(List.of());
         
+        User testUser = new User();
+        testUser.setUsername("testuser");
+        savedSale.setResponsibleUser(testUser);
+        
         when(saleRepository.save(any(Sale.class))).thenReturn(savedSale);
+        
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("testuser");
+        SecurityContextHolder.setContext(securityContext);
+        
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
         // When
         SaleResponseDTO response = saleService.createSale(request);
@@ -81,7 +99,7 @@ class SaleServiceTest {
         Long productId = 1L;
 
         SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 50);
-        SaleRequestDTO request = new SaleRequestDTO(branchId, "vendedor1", List.of(detail));
+        SaleRequestDTO request = new SaleRequestDTO(branchId, List.of(detail));
 
         Branch branch = new Branch();
         branch.setId(branchId);
@@ -94,6 +112,16 @@ class SaleServiceTest {
         when(branchRepository.findById(branchId)).thenReturn(Optional.of(branch));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(inventoryRepository.findByBranchIdAndProductIdWithLock(branchId, productId)).thenReturn(Optional.of(inventory));
+        
+        User testUser = new User();
+        testUser.setUsername("testuser");
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("testuser");
+        SecurityContextHolder.setContext(securityContext);
+        
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
         // When & Then
         assertThatThrownBy(() -> saleService.createSale(request))

@@ -13,6 +13,11 @@ import com.optiplant.inventory.repository.InventoryAdjustmentRepository;
 import com.optiplant.inventory.repository.InventoryRepository;
 import com.optiplant.inventory.repository.ProductRepository;
 import com.optiplant.inventory.repository.TransferRepository;
+import com.optiplant.inventory.repository.UserRepository;
+import com.optiplant.inventory.domain.entity.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +40,7 @@ class TransferServiceTest {
     @Mock private ProductRepository productRepository;
     @Mock private InventoryRepository inventoryRepository;
     @Mock private InventoryAdjustmentRepository adjustmentRepository;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks
     private TransferService transferService;
@@ -49,12 +55,15 @@ class TransferServiceTest {
         Long detailId = 100L;
 
         TransferReceiveDetailDTO detailReq = new TransferReceiveDetailDTO(detailId, 3);
-        TransferReceiveRequestDTO request = new TransferReceiveRequestDTO("user2", List.of(detailReq));
+        TransferReceiveRequestDTO request = new TransferReceiveRequestDTO(List.of(detailReq));
 
         Transfer transfer = new Transfer();
         transfer.setId(transferId);
         transfer.setStatus(TransferStatus.IN_TRANSIT);
-        transfer.setResponsibleUser("user1");
+        
+        User testUser = new User();
+        testUser.setUsername("user1");
+        transfer.setResponsibleUser(testUser);
         
         Branch destBranch = new Branch();
         destBranch.setId(destBranchId);
@@ -78,6 +87,16 @@ class TransferServiceTest {
         when(transferRepository.findById(transferId)).thenReturn(Optional.of(transfer));
         when(inventoryRepository.findByBranchIdAndProductIdWithLock(destBranchId, productId)).thenReturn(Optional.of(destInventory));
         when(transferRepository.save(any(Transfer.class))).thenReturn(transfer);
+        
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("user2");
+        SecurityContextHolder.setContext(securityContext);
+        
+        User receiverUser = new User();
+        receiverUser.setUsername("user2");
+        when(userRepository.findByUsername("user2")).thenReturn(Optional.of(receiverUser));
 
         // When
         transferService.receiveTransfer(transferId, request);

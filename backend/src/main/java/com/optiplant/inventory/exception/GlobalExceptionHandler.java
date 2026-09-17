@@ -45,6 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleInternal(Exception ex) {
+        ex.printStackTrace();
         return Map.of("error", "Error interno del servidor", "details", ex.getMessage());
     }
 }

@@ -28,6 +28,10 @@ public class InventoryAdjustment {
     @Column(name = "adjustment_date", nullable = false)
     private LocalDateTime adjustmentDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User responsibleUser;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -41,4 +45,6 @@ public class InventoryAdjustment {
     public void setReason(String reason) { this.reason = reason; }
     public LocalDateTime getAdjustmentDate() { return adjustmentDate; }
     public void setAdjustmentDate(LocalDateTime adjustmentDate) { this.adjustmentDate = adjustmentDate; }
+    public User getResponsibleUser() { return responsibleUser; }
+    public void setResponsibleUser(User responsibleUser) { this.responsibleUser = responsibleUser; }
 }

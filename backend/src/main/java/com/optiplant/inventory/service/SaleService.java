@@ -10,6 +10,9 @@ import com.optiplant.inventory.repository.BranchRepository;
 import com.optiplant.inventory.repository.InventoryRepository;
 import com.optiplant.inventory.repository.ProductRepository;
 import com.optiplant.inventory.repository.SaleRepository;
+import com.optiplant.inventory.repository.UserRepository;
+import com.optiplant.inventory.domain.entity.User;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +30,22 @@ public class SaleService {
     private final BranchRepository branchRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final UserRepository userRepository;
 
     public SaleService(SaleRepository saleRepository, BranchRepository branchRepository,
-                       ProductRepository productRepository, InventoryRepository inventoryRepository) {
+                       ProductRepository productRepository, InventoryRepository inventoryRepository,
+                       UserRepository userRepository) {
         this.saleRepository = saleRepository;
         this.branchRepository = branchRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
+        this.userRepository = userRepository;
+    }
+
+    private User getAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
     }
 
     @Transactional
@@ -44,7 +56,7 @@ public class SaleService {
         Sale sale = new Sale();
         sale.setBranch(branch);
         sale.setSaleDate(LocalDateTime.now());
-        sale.setResponsibleUser(request.responsibleUser());
+        sale.setResponsibleUser(getAuthenticatedUser());
         
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<SaleDetail> details = new ArrayList<>();
@@ -112,7 +124,7 @@ public class SaleService {
                 sale.getBranch().getName(),
                 sale.getSaleDate(),
                 sale.getTotalAmount(),
-                sale.getResponsibleUser(),
+                sale.getResponsibleUser().getUsername(),
                 detailDTOs
         );
     }

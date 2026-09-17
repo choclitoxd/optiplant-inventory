@@ -23,8 +23,9 @@ public class Sale {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "responsible_user", nullable = false, length = 100)
-    private String responsibleUser;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User responsibleUser;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleDetail> details;
@@ -38,8 +39,8 @@ public class Sale {
     public void setSaleDate(LocalDateTime saleDate) { this.saleDate = saleDate; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
-    public String getResponsibleUser() { return responsibleUser; }
-    public void setResponsibleUser(String responsibleUser) { this.responsibleUser = responsibleUser; }
+    public User getResponsibleUser() { return responsibleUser; }
+    public void setResponsibleUser(User responsibleUser) { this.responsibleUser = responsibleUser; }
     public List<SaleDetail> getDetails() { return details; }
     public void setDetails(List<SaleDetail> details) { this.details = details; }
 }

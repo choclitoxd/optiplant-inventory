@@ -3,6 +3,7 @@ package com.optiplant.inventory.service;
 import com.optiplant.inventory.domain.dto.TransferDTOs.*;
 import com.optiplant.inventory.domain.entity.*;
 import com.optiplant.inventory.repository.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +21,23 @@ public class TransferService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final InventoryAdjustmentRepository inventoryAdjustmentRepository;
+    private final UserRepository userRepository;
 
     public TransferService(TransferRepository transferRepository, BranchRepository branchRepository,
                            ProductRepository productRepository, InventoryRepository inventoryRepository,
-                           InventoryAdjustmentRepository inventoryAdjustmentRepository) {
+                           InventoryAdjustmentRepository inventoryAdjustmentRepository, UserRepository userRepository) {
         this.transferRepository = transferRepository;
         this.branchRepository = branchRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.inventoryAdjustmentRepository = inventoryAdjustmentRepository;
+        this.userRepository = userRepository;
+    }
+
+    private User getAuthenticatedUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
     }
 
     @Transactional
@@ -47,7 +56,7 @@ public class TransferService {
         transfer.setDestinationBranch(destination);
         transfer.setSendDate(LocalDateTime.now());
         transfer.setStatus(TransferStatus.IN_TRANSIT);
-        transfer.setResponsibleUser(request.responsibleUser());
+        transfer.setResponsibleUser(getAuthenticatedUser());
 
         List<TransferDetail> details = new ArrayList<>();
 
@@ -115,6 +124,7 @@ public class TransferService {
                 adjustment.setQuantity(-difference); // Representa pérdida
                 adjustment.setReason("TRANSFER_DISCREPANCY (Origen ID: " + transfer.getOriginBranch().getId() + ")");
                 adjustment.setAdjustmentDate(LocalDateTime.now());
+                adjustment.setResponsibleUser(getAuthenticatedUser());
                 inventoryAdjustmentRepository.save(adjustment);
             }
 
@@ -136,10 +146,7 @@ public class TransferService {
 
         transfer.setReceiveDate(LocalDateTime.now());
         transfer.setStatus(hasDiscrepancy ? TransferStatus.PARTIAL : TransferStatus.COMPLETED);
-        
-        // Mantener rastro de quien lo recibió agregándolo al registro de usuarios o asumiendo el log.
-        // En un caso real se tendría un campo separate receiverUser, lo concatenamos temporalmente:
-        transfer.setResponsibleUser(transfer.getResponsibleUser() + " | Recibió: " + request.responsibleUser());
+        // Only one user mapping currently, so we don't append to a string anymore.
 
         Transfer savedTransfer = transferRepository.save(transfer);
         return mapToResponseDTO(savedTransfer);
@@ -178,7 +185,7 @@ public class TransferService {
                 transfer.getSendDate(),
                 transfer.getReceiveDate(),
                 transfer.getStatus(),
-                transfer.getResponsibleUser(),
+                transfer.getResponsibleUser().getUsername(),
                 detailDTOs
         );
     }

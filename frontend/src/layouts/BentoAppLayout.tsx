@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { 
   SquaresFour, 
   WarningCircle, 
@@ -11,19 +11,19 @@ import {
   Bell,
   CaretLeft,
   CaretRight,
-  Storefront
+  Storefront,
+  SignOut,
+  Users
 } from '@phosphor-icons/react';
 import { branchService } from '../services/branchService';
 import { productService } from '../services/productService';
 import { alertService } from '../services/alertService';
+import { useAuth } from '../context/AuthContext';
+import { Role } from '../types/auth';
 import type { Branch, Product } from '../types';
 import type { StockAlert } from '../types/stockAlert';
 
-interface BentoAppLayoutProps {
-  children: React.ReactNode;
-}
-
-export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
+export const BentoAppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -33,6 +33,7 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     // Cargar catálogos y alertas globales para la cabecera
@@ -69,6 +70,10 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
     { name: 'Punto de Venta (POS)', path: '/sales', icon: Receipt },
     { name: 'Logística (Transferencias)', path: '/transfers', icon: Truck },
   ];
+
+  if (user?.roles?.includes(Role.ADMIN)) {
+    navItems.push({ name: 'Gestión de Usuarios', path: '/users', icon: Users });
+  }
 
   return (
     <div className="h-screen w-full bg-slate-50 font-sans text-slate-800 selection:bg-indigo-200/50 flex overflow-hidden">
@@ -146,6 +151,31 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
               );
             })}
           </nav>
+          
+          {/* User Profile & Logout */}
+          <div className="w-full mt-auto px-4 pt-4 pb-2">
+            <div className={`flex items-center gap-3 ${isSidebarOpen ? 'justify-between' : 'justify-center'} bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50`}>
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-8 h-8 shrink-0 bg-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center font-bold text-sm">
+                  {user?.username.charAt(0).toUpperCase()}
+                </div>
+                {isSidebarOpen && (
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-slate-200 truncate">{user?.username}</p>
+                    <p className="text-[10px] text-slate-500 font-medium truncate">{user?.roles[0]?.replace('ROLE_', '')}</p>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={logout}
+                className="text-slate-400 hover:text-rose-400 transition-colors shrink-0"
+                title="Cerrar sesión"
+              >
+                <SignOut size={20} weight="bold" />
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -315,7 +345,7 @@ export const BentoAppLayout: React.FC<BentoAppLayoutProps> = ({ children }) => {
             </div>
           </div>
           
-          {children}
+          <Outlet />
         </div>
       </main>
 

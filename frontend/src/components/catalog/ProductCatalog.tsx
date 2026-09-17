@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import type { Product, ProductRequest } from '../../types';
 import { productService } from '../../services/productService';
 import { MagnifyingGlass, Plus } from '@phosphor-icons/react';
+import { useAuth } from '../../context/AuthContext';
+import { Role } from '../../types/auth';
 
 export const ProductCatalog = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.includes(Role.ADMIN);
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -48,12 +52,14 @@ export const ProductCatalog = () => {
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
             />
           </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="whitespace-nowrap flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
-          >
-            <Plus size={16} weight="bold" /> Nuevo Producto
-          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="whitespace-nowrap flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-sm shadow-indigo-200"
+            >
+              <Plus size={16} weight="bold" /> Nuevo Producto
+            </button>
+          )}
         </div>
       </div>
 

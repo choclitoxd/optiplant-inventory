@@ -31,6 +31,27 @@ CREATE TABLE branch (
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE roles (
+    id          BIGSERIAL PRIMARY KEY,
+    name        VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE users (
+    id          BIGSERIAL PRIMARY KEY,
+    username    VARCHAR(50) UNIQUE NOT NULL,
+    email       VARCHAR(100) UNIQUE NOT NULL,
+    password    VARCHAR(255) NOT NULL,
+    full_name   VARCHAR(150) NOT NULL,
+    branch_id   BIGINT REFERENCES branch(id) ON DELETE SET NULL,
+    active      BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE user_roles (
+    user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id     BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, role_id)
+);
+
 CREATE TABLE inventory (
     id                  BIGSERIAL PRIMARY KEY,
     branch_id           BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -54,7 +75,7 @@ CREATE TABLE purchase (
     id              BIGSERIAL PRIMARY KEY,
     branch_id       BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     supplier_id     BIGINT NOT NULL REFERENCES supplier(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    responsible_user VARCHAR(100) NOT NULL,
+    user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     purchase_date   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total_amount    DECIMAL(10,2) NOT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -74,7 +95,7 @@ CREATE TABLE sale (
     branch_id   BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     sale_date   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(10,2) NOT NULL,
-    responsible_user VARCHAR(100) NOT NULL DEFAULT 'Sistema',
+    user_id      BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -95,7 +116,7 @@ CREATE TABLE transfer (
     send_date           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     receive_date        TIMESTAMP,
     status              VARCHAR(20) NOT NULL,
-    responsible_user    VARCHAR(100) NOT NULL
+    user_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE transfer_detail (
@@ -111,6 +132,7 @@ CREATE TABLE inventory_adjustment (
     id                  BIGSERIAL PRIMARY KEY,
     branch_id           BIGINT NOT NULL REFERENCES branch(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     product_id          BIGINT NOT NULL REFERENCES product(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    user_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     quantity            INT NOT NULL,
     reason              VARCHAR(255) NOT NULL,
     adjustment_date     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

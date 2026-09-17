@@ -15,9 +15,6 @@ public class SaleDTOs {
             @Schema(description = "ID de la sucursal donde se realiza la venta", example = "1")
             @NotNull(message = "Branch ID is required") Long branchId,
             
-            @Schema(description = "Usuario o vendedor responsable", example = "cajero_01")
-            @NotEmpty(message = "Responsible user is required") String responsibleUser,
-            
             @Schema(description = "Lista de productos a vender")
             @NotEmpty(message = "Sale details cannot be empty") List<SaleDetailRequestDTO> details
     ) {}

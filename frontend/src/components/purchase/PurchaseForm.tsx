@@ -3,18 +3,21 @@ import { purchaseService } from '../../services/purchaseService';
 import type { Supplier } from '../../types/supplier';
 import type { PurchaseDetailRequest } from '../../types/purchase';
 import { Dropdown } from '../ui/Dropdown';
+import { UserSearchSelect } from '../users/UserSearchSelect';
+import { useAuth } from '../../context/AuthContext';
 
 import { branchService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import type { Branch, Product } from '../../types';
 
 export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const { user } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [branchId, setBranchId] = useState<number>(0);
   const [supplierId, setSupplierId] = useState<number>(0);
-  const [responsibleUser, setResponsibleUser] = useState('');
+  const [responsibleUser, setResponsibleUser] = useState(user?.username || '');
   const [details, setDetails] = useState<PurchaseDetailRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -105,7 +108,15 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Usuario Responsable</label>
-          <input required className="w-full border border-slate-300 rounded-md p-[11px] focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50 focus:bg-white transition-colors" placeholder="Ej. Juan Pérez" value={responsibleUser} onChange={e => setResponsibleUser(e.target.value)} />
+          <div className="relative z-10">
+            <UserSearchSelect 
+              value={responsibleUser}
+              onChange={setResponsibleUser}
+              placeholder="Buscar comprador responsable..."
+              disabled={user?.roles?.includes('ROLE_OPERATOR')}
+              theme="light"
+            />
+          </div>
         </div>
       </div>
 

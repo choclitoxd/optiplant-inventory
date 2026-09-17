@@ -1,19 +1,22 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MagnifyingGlass, ShoppingCart, Plus, Minus, Trash, Receipt, User, Storefront, CashRegister, Warning } from '@phosphor-icons/react';
+import { MagnifyingGlass, ShoppingCart, Plus, Minus, Trash, Receipt, Storefront, CashRegister, Warning } from '@phosphor-icons/react';
 import type { Branch, Inventory, Product } from '../../types';
 import type { SaleDetailRequest } from '../../types/sale';
 import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { saleService } from '../../services/saleService';
 import { Dropdown } from '../ui/Dropdown';
+import { UserSearchSelect } from '../users/UserSearchSelect';
+import { useAuth } from '../../context/AuthContext';
 
 export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
   
   const [selectedBranch, setSelectedBranch] = useState<number>(0);
-  const [responsibleUser, setResponsibleUser] = useState<string>('');
+  const [responsibleUser, setResponsibleUser] = useState<string>(user?.username || '');
   const [cart, setCart] = useState<(SaleDetailRequest & { product: Product })[]>([]);
   const [search, setSearch] = useState('');
   
@@ -242,16 +245,12 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
         {/* Input Cajero */}
         <div className="relative z-10 mb-4">
-          <div className="flex items-center bg-slate-800/80 border border-slate-700 rounded-xl px-3 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-            <User size={18} className="text-slate-400" weight="bold" />
-            <input 
-              type="text" 
-              placeholder="Cajero responsable..." 
-              value={responsibleUser}
-              onChange={e => setResponsibleUser(e.target.value)}
-              className="w-full bg-transparent text-white placeholder:text-slate-500 p-3 outline-none text-sm font-medium"
-            />
-          </div>
+          <UserSearchSelect 
+            value={responsibleUser}
+            onChange={setResponsibleUser}
+            placeholder="Buscar cajero responsable..."
+            disabled={user?.roles?.includes('ROLE_OPERATOR')}
+          />
         </div>
 
         {/* Lista de Ítems (Ticket) */}

@@ -1,15 +1,15 @@
 spring:
   application:
     name: optiplant
-
-app:
-  mailtrap:
-    token: "aae51cae7dae2428a4ff4fa9697559be"
   sql:
     init:
       mode: always
   jpa:
     defer-datasource-initialization: true
+
+app:
+  mailtrap:
+    token: "aae51cae7dae2428a4ff4fa9697559be"
 
 springdoc:
   api-docs:

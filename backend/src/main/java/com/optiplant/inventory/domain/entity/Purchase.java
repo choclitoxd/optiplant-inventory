@@ -27,8 +27,9 @@ public class Purchase {
     @Column(nullable = false)
     private BigDecimal totalAmount;
     
-    @Column(nullable = false, length = 100)
-    private String responsibleUser;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User responsibleUser;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

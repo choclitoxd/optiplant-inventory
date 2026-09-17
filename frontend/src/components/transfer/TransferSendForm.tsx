@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Truck, ArrowRight, Package, User, Plus, Minus, Trash, Buildings, MagnifyingGlass, Warning } from '@phosphor-icons/react';
+import { Truck, ArrowRight, Package, Plus, Minus, Trash, Buildings, MagnifyingGlass, Warning } from '@phosphor-icons/react';
 import type { Branch, Inventory, Product } from '../../types';
 import type { TransferDetailRequest } from '../../types/transfer';
 import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { transferService } from '../../services/transferService';
 import { Dropdown } from '../ui/Dropdown';
+import { UserSearchSelect } from '../users/UserSearchSelect';
+import { useAuth } from '../../context/AuthContext';
 
 export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
   
   const [originBranchId, setOriginBranchId] = useState<number>(0);
   const [destBranchId, setDestBranchId] = useState<number>(0);
-  const [responsibleUser, setResponsibleUser] = useState<string>('');
+  const [responsibleUser, setResponsibleUser] = useState<string>(user?.username || '');
   const [search, setSearch] = useState('');
   
   const [cart, setCart] = useState<(TransferDetailRequest & { product: Product })[]>([]);
@@ -262,16 +265,12 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           </div>
 
           <div className="relative z-10 mb-4">
-            <div className="flex items-center bg-slate-800/80 border border-slate-700 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-              <User size={18} className="text-slate-400" weight="bold" />
-              <input 
-                type="text" 
-                placeholder="Responsable del envío..." 
-                value={responsibleUser}
-                onChange={e => setResponsibleUser(e.target.value)}
-                className="w-full bg-transparent text-white placeholder:text-slate-500 p-3 outline-none text-sm font-medium"
-              />
-            </div>
+            <UserSearchSelect 
+              value={responsibleUser}
+              onChange={setResponsibleUser}
+              placeholder="Buscar responsable del envío..."
+              disabled={user?.roles?.includes('ROLE_OPERATOR')}
+            />
           </div>
 
           <div className="relative z-10 flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">

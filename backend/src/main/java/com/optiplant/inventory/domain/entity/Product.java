@@ -25,6 +25,7 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal basePrice;
     
+    @Builder.Default
     @Column(nullable = false)
     private BigDecimal weightedAverageCost = BigDecimal.ZERO;
     
