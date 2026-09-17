@@ -1,165 +1,258 @@
-# OptiPlant - Sistema de Inventario Multi-Sucursal 🏭🌿
+# OptiPlant — Sistema de Inventario Multi-Sucursal
 
-OptiPlant es un sistema ERP de inventario diseñado específicamente para la gestión centralizada y distribuida de productos botánicos, fertilizantes y herramientas de jardinería a través de múltiples sucursales.
-
-La plataforma permite gestionar el catálogo de productos, controlar las recepciones de proveedores, ejecutar ventas (POS), transferir inventario entre sucursales y generar alertas automáticas cuando el stock cae por debajo del umbral mínimo.
+Sistema ERP para gestión de inventario distribuido entre múltiples sucursales. Cada sucursal opera con autonomía operativa mientras comparte visibilidad de inventario con toda la red.
 
 ---
 
-## 🛠 Stack Tecnológico y Arquitectura
+## Inicio Rápido
 
-El sistema está construido bajo una arquitectura de 3 capas separadas, orquestadas mediante **Docker Compose** para asegurar un despliegue homogéneo y reproducible.
+```bash
+git clone https://github.com/choclitoxd/optiplant-inventory.git
+cd optiplant-inventory
+docker compose up --build
+```
 
-*   **Frontend**: React.js 18 + TypeScript + Vite. 
-    *   *Estilización*: TailwindCSS (Bento UI Design System, CSS Variables, Glassmorphism).
-    *   *Enrutamiento*: React Router DOM.
-    *   *Iconografía*: Phosphor Icons.
-*   **Backend**: Java 21 + Spring Boot 3 (API REST RESTful).
-    *   *Persistencia*: Spring Data JPA + Hibernate.
-    *   *Documentación API*: Springdoc OpenAPI (Swagger UI).
-    *   *Notificaciones*: Mailtrap Java SDK para notificaciones asíncronas (`@Async`).
-*   **Base de Datos**: PostgreSQL 15.
+| Servicio | URL |
+|---|---|
+| Aplicación Web | http://localhost:3000 |
+| API Backend | http://localhost:8080/api |
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+
+**Credenciales por defecto:** `admin / admin123`
 
 ---
 
-## 🏗 Diagrama de Arquitectura
+## Stack Tecnológico
 
-```mermaid
-graph TD
-    Client[Cliente Web / Navegador] -->|HTTP/REST| Frontend[React + Vite Frontend]
-    Frontend -->|Axios (JSON)| API_Gateway[Spring Boot API REST]
-    
-    subgraph "Backend Services"
-        API_Gateway --> ControllerLayer[Controllers]
-        ControllerLayer --> ServiceLayer[Services - Lógica de Negocio]
-        ServiceLayer --> RepositoryLayer[Spring Data JPA Repositories]
-    end
-    
-    RepositoryLayer -->|TCP/IP - Puerto 5432| DB[(PostgreSQL)]
-    ServiceLayer -.->|Notificaciones Asíncronas| Mailtrap[Mailtrap API SDK]
-    Mailtrap -.->|Correo SMTP| Admin[Bandeja del Administrador]
+| Capa | Tecnología | Justificación |
+|---|---|---|
+| **Frontend** | React 18 + TypeScript + Vite | SPA con tipado estricto; Vite acelera el ciclo dev vs. CRA |
+| **Backend** | Java 21 + Spring Boot 3 | Ecosistema maduro, Spring Security integrado para RBAC, JPA para ORM |
+| **Base de datos** | PostgreSQL 15 | ACID compliance, soporte nativo para `SELECT ... FOR UPDATE` (bloqueo pesimista) |
+| **Contenedores** | Docker Compose | Entorno reproducible con un solo comando; sin dependencias locales de JDK/Node |
+| **Autenticación** | JWT (JSON Web Tokens) | Stateless; compatible con arquitectura de microservicios futura |
+
+---
+
+## Arquitectura del Sistema
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    CLIENTE WEB                          │
+│              React + TypeScript + Vite                  │
+│      Axios → JWT en header Authorization Bearer         │
+└────────────────────┬────────────────────────────────────┘
+                     │ HTTP REST (JSON)
+┌────────────────────▼────────────────────────────────────┐
+│                 SPRING BOOT API                          │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐ │
+│  │Controllers│→│ Services │→│ JPA Repositories       │ │
+│  │@RestCtrl  │  │@Service  │  │ Spring Data            │ │
+│  │@PreAuth   │  │@Transact.│  │ + @Lock PESSIMISTIC    │ │
+│  └──────────┘  └──────────┘  └────────────────────────┘ │
+│  Spring Security: JWT Filter → SecurityContextHolder     │
+└────────────────────┬────────────────────────────────────┘
+                     │ TCP 5432
+┌────────────────────▼────────────────────────────────────┐
+│                  POSTGRESQL 15                           │
+│   product / branch / inventory / sale / purchase        │
+│   transfer / user / role / inventory_adjustment         │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 Modelo Entidad-Relación (E-R)
-
-El esquema de base de datos relacional asegura la consistencia de los datos (3FN) y soporta bloqueos transaccionales para operaciones concurrentes en el inventario.
+## Modelo de Datos (E-R Simplificado)
 
 ```mermaid
 erDiagram
     BRANCH ||--o{ INVENTORY : "posee"
     BRANCH ||--o{ SALE : "realiza"
-    BRANCH ||--o{ PURCHASE_ORDER : "recibe"
-    BRANCH ||--o{ TRANSFER : "origen"
-    BRANCH ||--o{ TRANSFER : "destino"
-    
-    PRODUCT ||--o{ INVENTORY : "está almacenado en"
-    PRODUCT ||--o{ PURCHASE_ORDER_ITEM : "contiene"
-    PRODUCT ||--o{ SALE_ITEM : "contiene"
-    PRODUCT ||--o{ TRANSFER_ITEM : "contiene"
-    
-    SUPPLIER ||--o{ PURCHASE_ORDER : "abastece"
-    
-    PURCHASE_ORDER ||--|{ PURCHASE_ORDER_ITEM : "compuesto por"
-    SALE ||--|{ SALE_ITEM : "compuesto por"
-    TRANSFER ||--|{ TRANSFER_ITEM : "compuesto por"
+    BRANCH ||--o{ PURCHASE : "recibe"
+    BRANCH ||--o{ TRANSFER : "origen/destino"
+    BRANCH ||--o{ USER : "pertenece"
 
-    PRODUCT {
-        bigint id PK
-        string sku "Único"
-        string name
-        decimal base_price
-    }
-    
-    BRANCH {
-        bigint id PK
-        string name
-        string address
-    }
-    
+    PRODUCT ||--o{ INVENTORY : "stock en"
+    PRODUCT ||--o{ SALE_DETAIL : "vendido en"
+    PRODUCT ||--o{ PURCHASE_DETAIL : "comprado en"
+    PRODUCT ||--o{ TRANSFER_DETAIL : "transferido en"
+
+    USER }o--|| ROLE : "tiene"
+    SUPPLIER ||--o{ PURCHASE : "abastece"
+
     INVENTORY {
-        bigint id PK
         bigint product_id FK
         bigint branch_id FK
-        int current_stock
+        int stock
         int min_stock_threshold
+        decimal weighted_avg_cost
     }
-    
-    SUPPLIER {
-        bigint id PK
-        string name
-        string email
+
+    TRANSFER {
+        enum status "PENDING|SHIPPED|COMPLETED|PARTIAL"
+        bigint origin_branch FK
+        bigint dest_branch FK
     }
+```
+
+**Decisión de diseño:** `PRODUCT` (catálogo global) es independiente de `INVENTORY` (stock por sucursal). Esto cumple 3FN y permite que un producto exista en múltiples sucursales con stocks distintos sin duplicar datos.
+
+---
+
+## Módulos Implementados
+
+### Gestión de Catálogo y Sucursales
+- CRUD de productos con SKU, precio base y costo promedio ponderado (CPP)
+- Administración de sucursales con activación/desactivación
+- Vista de stock por sucursal con filtros
+
+### Módulo de Compras
+- Registro de facturas de proveedor (maestro-detalle)
+- Cálculo automático de CPP al recibir mercancía:
+  ```
+  CPP_nuevo = (stock_actual × cpp_anterior + cant_nueva × precio_nuevo)
+              ─────────────────────────────────────────────────────────
+                            stock_actual + cant_nueva
+  ```
+- Historial de compras por proveedor
+
+### Módulo de Ventas (POS)
+- Caja registradora con catálogo y carrito en tiempo real
+- Validación de stock antes de confirmar: `SELECT ... FOR UPDATE` (bloqueo pesimista) previene race conditions en ventas concurrentes
+- Historial de ventas con detalle expandible
+
+### Transferencias entre Sucursales
+- Flujo en 2 fases: **Envío** (descuenta origen) → **Recepción** (incrementa destino)
+- Soporte de **recepción parcial**: si llegan menos unidades de las enviadas, el faltante se registra como merma en `inventory_adjustment`
+- Estados: `PENDING → SHIPPED → COMPLETED | PARTIAL`
+
+### Alertas de Stock
+- Job programado (`@Scheduled`) que evalúa diariamente productos bajo `min_stock_threshold`
+- Panel de alertas con notificación por email vía Mailtrap SDK (asíncrono con `@Async`)
+
+### Dashboard de Análisis
+- KPIs: total inventario, ventas del mes, productos en alerta
+- Gráfico de valor de inventario por sucursal
+- Tabla de productos más vendidos
+
+### Gestión de Usuarios y RBAC
+
+| Rol | Permisos |
+|---|---|
+| `ROLE_ADMIN` | Acceso global a todas las sucursales. Puede crear/editar cualquier usuario |
+| `ROLE_BRANCH_MANAGER` | Ve y gestiona únicamente los usuarios de su sucursal. No puede crear Admins |
+| `ROLE_OPERATOR` | Opera el POS y registra compras/transferencias en su sucursal |
+
+**Implementación:** `@PreAuthorize` en controladores + `SecurityContextHolder` en servicios para filtrado dinámico por `branchId` del token JWT.
+
+---
+
+## Casos de Uso — Actores Principales
+
+```
+Administrador Global
+  ├── Gestiona sucursales (crear, editar, activar/desactivar)
+  ├── Gestiona todos los usuarios y roles
+  ├── Accede al dashboard global
+  └── Aprueba transferencias entre cualquier sucursal
+
+Gerente de Sucursal
+  ├── Gestiona usuarios de su sucursal
+  ├── Aprueba y recibe transferencias en su nodo
+  ├── Consulta stock de otras sucursales
+  └── Ve alertas y dashboard de su sucursal
+
+Operador / Cajero
+  ├── Registra ventas (POS)
+  ├── Registra compras a proveedores
+  └── Emite solicitudes de transferencia
 ```
 
 ---
 
-## 👤 Diagrama de Casos de Uso
+## Reglas de Negocio Clave
 
-Los flujos de trabajo principales del usuario están centralizados en torno a la gestión operativa de cada sucursal.
+1. **Stock nunca negativo:** Validación con bloqueo pesimista (`PESSIMISTIC_WRITE`) en toda venta.
+2. **Admin sin sucursal:** El backend fuerza `branchId = null` para `ROLE_ADMIN` independientemente del payload.
+3. **Otros roles con sucursal obligatoria:** El backend rechaza con HTTP 400 si `branchId` es null para roles no-admin.
+4. **Aislamiento de Gerentes:** Un Gerente solo puede ver/editar usuarios cuyo `branchId` coincida con el suyo. Validado en `UserService.validateManagerAccess()`.
+5. **Trazabilidad completa:** Toda venta, compra y transferencia tiene `responsible_user`, `created_at` y `branch` registrados.
 
-```mermaid
-usecaseDiagram
-    actor Gerente as "Gerente de Sucursal"
-    
-    rectangle "OptiPlant ERP" {
-        usecase UC1 as "Consultar Catálogo y Stock Global"
-        usecase UC2 as "Registrar Venta (POS)"
-        usecase UC3 as "Recepcionar Compra de Proveedor"
-        usecase UC4 as "Emitir Transferencia entre Sucursales"
-        usecase UC5 as "Notificar Alertas de Stock Crítico"
-    }
-    
-    Gerente --> UC1
-    Gerente --> UC2
-    Gerente --> UC3
-    Gerente --> UC4
-    Gerente --> UC5
+---
+
+## Pruebas Unitarias
+
+```
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 1
+```
+
+| Suite | Casos cubiertos |
+|---|---|
+| `SaleServiceTest` | Stock suficiente → descuenta; Stock insuficiente → `IllegalArgumentException` |
+| `PurchaseServiceTest` | CPP: `(10×$80 + 10×$120) / 20 = $100.00` ✓ |
+| `AuthServiceTest` | Admin sin sucursal pasa; Operador sin sucursal falla; Username duplicado falla; Operador con sucursal pasa |
+| `TransferServiceTest` | Envío descuenta stock en origen |
+| `AlertServiceTest` | Job de alertas detecta productos bajo umbral |
+| `DashboardServiceTest` | KPIs se consolidan correctamente |
+
+Para ejecutar los tests:
+```bash
+docker run --rm -v "$(pwd)/backend:/app" -w /app \
+  maven:3.9.6-eclipse-temurin-21-alpine mvn test
 ```
 
 ---
 
-## 🚀 Despliegue Rápido (Docker)
+## Variables de Entorno
 
-El proyecto incluye un entorno pre-configurado para desarrolladores y pruebas técnicas. No es necesario instalar Node.js ni JDK localmente, solo Docker.
-
-### 1. Requisitos
-*   Docker y Docker Compose instalados.
-*   (Opcional) Un token de Mailtrap para probar el envío real de correos.
-
-### 2. Configuración de Variables
-Si deseas habilitar el envío real de correos por Mailtrap, edita el archivo `backend/src/main/resources/application.yml` y coloca tu API Token:
-
-```yaml
-app:
-  mailtrap:
-    token: "TU_API_TOKEN_AQUI"
-```
-
-### 3. Levantar los Servicios
-En la raíz del proyecto, ejecuta el siguiente comando:
+Copia `.env.example` a `.env` y ajusta si es necesario:
 
 ```bash
-docker compose up --build
+cp .env.example .env
 ```
 
-Esto compilará el Backend, el Frontend y desplegará la base de datos PostgreSQL. 
-
-### 4. Accesos a la Aplicación
-*   **Frontend (OptiPlant UI)**: [http://localhost:3000](http://localhost:3000)
-*   **Backend API Base**: [http://localhost:8080/api](http://localhost:8080/api)
-*   **Swagger UI (Documentación Interactiva)**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+| Variable | Descripción |
+|---|---|
+| `POSTGRES_DB` | Nombre de la base de datos |
+| `POSTGRES_USER` | Usuario de PostgreSQL |
+| `POSTGRES_PASSWORD` | Contraseña de PostgreSQL |
+| `JWT_SECRET` | Clave secreta para firmar tokens JWT |
+| `MAILTRAP_TOKEN` | API Token de Mailtrap (opcional, para emails) |
 
 ---
 
-## 📌 Evidencia de Uso de IA y Justificación Técnica
+## Evidencia de IA
 
-Todas las decisiones de diseño arquitectónico han sido cuidadosamente sopesadas para cumplir con los estándares de la industria corporativa:
+Ver [`EVIDENCIA_IA.md`](./EVIDENCIA_IA.md) para la descripción completa del uso de Inteligencia Artificial durante el desarrollo, incluyendo prompts clave, evaluación crítica y estimación de contribución por componente.
 
-1.  **¿Por qué se usa un "App Shell" con `overflow-hidden` en Frontend?**
-    Para brindar una experiencia de usuario (UX) tipo SaaS empresarial (Bento UI). Evita el scroll global del documento, manteniendo la barra lateral (Sidebar) 100% estática e independiente de la cantidad de contenido en la vista principal, tal como lo dictan los estándares modernos de accesibilidad.
-2.  **¿Por qué se utiliza el SDK asíncrono de Mailtrap?**
-    La notificación a gerencia (`AlertService`) se encoló utilizando `@Async` y delegando el envío directo al SDK de Mailtrap (`MailtrapClient`) en lugar de SMPT tradicional. Esto garantiza que el hilo HTTP principal no se bloquee mientras se resuelve el DNS del correo, mejorando drásticamente el tiempo de respuesta del Frontend.
-3.  **¿Por qué el modelo de datos separa `Product` de `Inventory`?**
-    Siguiendo las reglas de la 3ra Forma Normal (3FN), el catálogo (Producto) es universal, pero el nivel de stock (Inventario) varía según la sucursal. Esta separación previene anomalías de actualización y facilita las consultas de transferencias inter-sucursales.
+---
+
+## Estructura del Repositorio
+
+```
+optiplant-inventory/
+├── backend/                    # Spring Boot API REST
+│   ├── src/main/java/          # Código fuente
+│   │   └── com/optiplant/inventory/
+│   │       ├── controller/     # Endpoints REST
+│   │       ├── service/        # Lógica de negocio
+│   │       ├── domain/         # Entidades JPA + DTOs
+│   │       ├── repository/     # Spring Data Repositories
+│   │       ├── security/       # JWT + Spring Security
+│   │       └── exception/      # Global Exception Handler
+│   └── src/test/               # Tests unitarios JUnit 5
+├── frontend/                   # React + TypeScript + Vite
+│   └── src/
+│       ├── components/         # Componentes reutilizables
+│       ├── pages/              # Vistas por ruta
+│       ├── services/           # Clientes HTTP (Axios)
+│       ├── context/            # AuthContext (JWT)
+│       └── types/              # Interfaces TypeScript
+├── docker/
+│   └── db/init/schema.sql      # Schema inicial de PostgreSQL
+├── Diagramas/                  # Diagramas de ingeniería
+├── docker-compose.yml          # Orquestación de servicios
+├── tablero_kanban.md           # Historial de desarrollo incremental
+├── EVIDENCIA_IA.md             # Evidencia de uso de IA
+└── README.md                   # Este archivo
+```

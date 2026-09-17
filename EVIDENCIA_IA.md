@@ -1,76 +1,85 @@
-# 🤖 Evidencia de Uso de IA y Análisis de Prompts
+# 🤖 Evidencia de Uso de IA — OptiPlant ERP
 
-Este documento recopila la trazabilidad del desarrollo asistido por Inteligencia Artificial durante la prueba técnica del sistema **OptiPlant ERP**. Se detalla la estructura del proyecto, el registro de prompts utilizados, el impacto de cada uno en el código fuente, y un análisis estimado del consumo de tokens (ancho de banda cognitivo).
+## 1. Herramienta y Metodología
 
----
+**Herramienta:** Antigravity IDE (Google DeepMind) con modelos Claude Sonnet 4.6 y Gemini Pro.
 
-## 🏗️ 1. Estructura del Proyecto y Metodología
-
-El proyecto se estructuró bajo una arquitectura estricta de 3 capas, separando responsabilidades:
-*   **Frontend (`/frontend`)**: React + TypeScript + Vite + TailwindCSS.
-*   **Backend (`/backend`)**: Java 21 + Spring Boot 3 + Spring Data JPA.
-*   **Base de Datos**: PostgreSQL 15.
-
-**Metodología de IA aplicada:**
-Se aplicó la regla de **Desarrollo Incremental basado en Context Engineering**. En lugar de pedir "hazme toda la app", el modelo fue alimentado progresivamente por el desarrollador con problemas puntuales, permitiendo que la IA operara como un *Pair Programmer* (Modo Ponytail: directo, sin sobreingeniería).
+**Metodología — Context Engineering con Ponytail:**  
+En lugar de solicitar "genera todo el sistema", el desarrollador actuó como **arquitecto** y la IA como **pair programmer táctico**. Se usaron slash commands especializados por dominio (`/java-springboot`, `/react-frontend`, `/ui-ux-design`, `/ponytail`) para delimitar el contexto de cada prompt e impedir que la IA sobreingeniara soluciones. El principio rector fue siempre: **la solución más simple que funcione correctamente**.
 
 ---
 
-## 📊 2. Análisis de Consumo de Tokens (Estimación de Carga Cognitiva)
+## 2. Áreas de Aplicación
 
-Durante la sesión, el consumo de tokens de contexto varió según la tarea. Las tareas de depuración (debugging) fueron las más costosas debido a la necesidad de leer logs largos y múltiples archivos simultáneamente.
-
-| Fila | Tipo de Tarea | Consumo de Tokens (Estimado) | Nivel de Dificultad para IA |
-| :--- | :--- | :--- | :--- |
-| 1 | **Depuración de Envío de Correos (Mailtrap + Spring `@Async`)** | 🔴 Alto (~8k - 12k tokens) | Muy Alto (Implicó leer logs de Java, `application.yml`, y refactorizar dependencias Maven). |
-| 2 | **Resolución de Errores CORS y Datos Vacíos (`http://localhost:3000/catalog`)** | 🟠 Medio-Alto (~6k tokens) | Alto (Implicó escanear archivos de configuración de Spring Security y Controladores). |
-| 3 | **Creación del Componente UI (`Dropdown.tsx`) con variables CSS** | 🟡 Medio (~4k tokens) | Medio (Generación pura de código basada en restricciones estrictas de UI/UX). |
-| 4 | **Refactorización del Layout (Sidebar Estático vs Scroll)** | 🟢 Bajo (~2k tokens) | Bajo (Conocimiento estándar de Flexbox y TailwindCSS). |
-
-> **💡 Conclusión del consumo:** El prompt que consumió más tokens fue la **resolución del envío de correos (Notificar a Gerencia)**. El modelo tuvo que mantener en memoria el controlador REST, el servicio de correos, la configuración del `pom.xml`, el archivo `application.yml` y los logs de error de Docker de Mailtrap para conectar todas las piezas.
-
----
-
-## 📝 3. Registro de Prompts Clave y su Impacto en el Proyecto
-
-A continuación, se detallan los prompts exactos enviados por el desarrollador y cómo la IA los transformó en código funcional.
-
-### 🎯 Prompt 1: Creación de Componente UI Personalizado
-**Prompt del Usuario:**
-> *"/react-frontend /ponytail /ui-ux-design Actúa como un desarrollador Frontend experto para un componente de menú desplegable (dropdown) personalizado. [...] Color dinámico (Crucial): Todo el esquema de color debe controlarse mediante una única Variable CSS en la raíz (por ejemplo, --theme-color)..."*
-
-*   **¿Qué hacía el prompt?** Exigía la creación de un componente de UI desde cero, prohibiendo el uso del `<select>` nativo del navegador para mantener una estética "Bento UI" moderna y corporativa.
-*   **Impacto en el proyecto:** Se creó el archivo `frontend/src/components/ui/Dropdown.tsx`. La IA utilizó la propiedad `color-mix` de CSS para generar estados de *hover* y *active* basados puramente en variables CSS dinámicas, logrando un diseño premium.
-
-### 🎯 Prompt 2: Depuración de Capas Front/Back (CORS y Endpoints)
-**Prompt del Usuario:**
-> *"/react-frontend /ponytail /ui-ux-design Tengo un serio problema en http://localhost:3000/catalog no se evidencia informacion ni datos lo mismo para purchases, sales, transfers necesito que encuentres el error /java-springboot"*
-
-*   **¿Qué hacía el prompt?** Reportaba un fallo crítico de integración donde la interfaz gráfica no mostraba los datos provenientes de la base de datos (PostgreSQL).
-*   **Impacto en el proyecto:** La IA auditó la red y descubrió dos bloqueos. Primero, habilitó globalmente los encabezados CORS en `backend/src/main/java/com/optiplant/inventory/config/CorsConfig.java`. Segundo, identificó que los controladores (`PurchaseController`, etc.) no estaban exponiendo correctamente las rutas GET, procediendo a mapearlos.
-
-### 🎯 Prompt 3: Refactorización Visual de Layouts (Bug del menú cortado)
-**Prompt del Usuario:**
-> *"/ponytail /react-frontend /ui-ux-design Se evidencia que side bar queda corto a la misma vez quiero asi yo baje quisera que lo que este side bar quede estatico que no se mueva asi baje"*
-
-*   **¿Qué hacía el prompt?** Solicitaba corregir un defecto de maquetación (layout) donde el menú lateral se desplazaba hacia arriba al hacer scroll en tablas de datos muy largas.
-*   **Impacto en el proyecto:** La IA modificó `BentoAppLayout.tsx`. Se reemplazó la clase `min-h-screen` por un enfoque de **App Shell** usando `h-screen overflow-hidden` en el contenedor principal, e inyectando `overflow-y-auto` únicamente en la etiqueta `<main>`.
-
-### 🎯 Prompt 4: El Reto Principal - Sistema de Alertas por Correo (Mailtrap)
-**Prompts del Usuario (Secuencia interactiva):**
-> *1. "no funciona el notificar a gerencia"*
-> *2. "No me llega el correo"*
-> *3. "Yo lo decia por que lo de correo medio un token para esto y un ejemplo de como se puede implentar tal import io.mailtrap.client.MailtrapClient..."*
-
-*   **¿Qué hacía el prompt?** El desarrollador detectó que el botón de envío de alertas no funcionaba. Tras varios intentos, proveyó directamente la documentación oficial del SDK de Mailtrap en Java para que la IA lo implementara.
-*   **Impacto en el proyecto (Mayor consumo de tokens):** 
-    1. Se inyectó la dependencia `mailtrap-java` en `pom.xml`.
-    2. Se refactorizó totalmente `EmailService.java` para reemplazar el clásico `JavaMailSender` por la API robusta de Mailtrap.
-    3. Se implementó el decorador `@Async` y `@EnableAsync` en Spring Boot para garantizar que el correo se enviara en un hilo secundario y no bloqueara la interfaz gráfica del usuario.
-    4. Se aseguró que los secretos se movieran a `.gitignore`.
+| Área | IA Aplicada | Resultado |
+|---|---|---|
+| **Diseño de arquitectura** | Propuso separación de capas, diagrama E-R, normalización 3FN | Modelo de datos definitivo y decisiones documentadas |
+| **Generación de código** | Backend: Services, Controllers, DTOs, JPA Repositories | ~70% del código generado, ~30% ajustado manualmente |
+| **Seguridad** | Implementó Spring Security + JWT + RBAC (`@PreAuthorize`) | Sistema de autenticación multi-rol funcional |
+| **Lógica de negocio** | CPP, bloqueo pesimista de stock, recepción parcial | Algoritmos auditados y validados por el desarrollador |
+| **Pruebas unitarias** | Generó 12 tests JUnit 5 con Mockito | 0 fallos en suite completa |
+| **Depuración** | Analizó logs de Docker, trazó errores de CORS, 403 y build | Bugs resueltos en minutos vs. horas manuales |
+| **Documentación técnica** | Generó README, diagramas Mermaid, Kanban | Documentación coherente con el código |
 
 ---
 
-## 🏁 4. Conclusión
+## 3. Ejemplos Concretos de Prompts
 
-El uso de asistentes de IA (Antigravity/Gemini) en este proyecto no se limitó a "generar código", sino que operó como una herramienta de **ingeniería de software asistida**. El desarrollador mantuvo el control de la arquitectura (dirigiendo a la IA mediante slash commands como `/java-springboot` y `/ui-ux-design`), mientras que la IA resolvió la complejidad táctica (CSS conflictivo, dependencias de Maven, y asincronismo en Java).
+### Prompt 1 — Arquitectura de Seguridad Multi-Rol (RBAC)
+> *"/java-springboot /react-frontend /ponytail quiero que solo el admin sea global en sucursales, el resto debe si o si tener una sucursal [...] el gerente de la sucursal solo podra editar su stock de su sucursal"*
+
+**Qué generó la IA:**
+- `SecurityConfig.java` con Spring Security stateless + JWT
+- `JwtTokenProvider.java` para emisión y validación de tokens
+- Lógica en `UserService.validateManagerAccess()`: Admin hace early-return; Gerente filtrado por `branchId` del token
+- `UserModal.tsx` con campo Sucursal dinámico (desaparece si rol = Admin, bloqueado si es Gerente)
+
+**Ajuste manual del desarrollador:** El desarrollador detectó que la validación original fallaba cuando Admin editaba a otro Admin (ambos con `branch = null`). Se corrigió el orden de condiciones en `validateManagerAccess`.
+
+---
+
+### Prompt 2 — Concurrencia en Ventas
+> *"La validación de stock debe ser concurrente para evitar saldos negativos si dos cajeros venden el último artículo al mismo tiempo"*
+
+**Qué generó la IA:**
+- `@Lock(LockModeType.PESSIMISTIC_WRITE)` en `InventoryRepository.findByBranchIdAndProductIdWithLock()`
+- `@Transactional` en `SaleService.createSale()` para garantizar atomicidad
+- Test unitario: `SaleServiceTest.shouldThrowIllegalArgumentExceptionWhenRequestedQuantityExceedsStock`
+
+---
+
+### Prompt 3 — Costo Promedio Ponderado (CPP)
+> *"Calcular el costo promedio ponderado en el backend al momento de registrar la compra"*
+
+**Qué generó la IA:**
+- Fórmula: `CPP_nuevo = (stock_actual × cpp_anterior + cantidad_nueva × precio_nuevo) / (stock_actual + cantidad_nueva)`
+- Implementada en `PurchaseService.java` dentro de una transacción
+- Validada con test: `PurchaseServiceTest` — stock=10 a $80 + 10 a $120 = CPP de $100 exacto ✓
+
+---
+
+## 4. Evaluación Crítica
+
+### Lo que la IA hizo bien
+- Generó la estructura completa del backend (entidades, repositorios, DTOs, servicios) en forma correcta en el primer intento.
+- Los tests unitarios con Mockito fueron precisos y cubrieron los casos límite correctos (stock negativo, usuario duplicado, rol sin sucursal).
+- Identificó y resolvió errores de CORS, imports no utilizados en TypeScript y bugs de seguridad más rápido que una búsqueda manual.
+
+### Dónde requirió intervención humana
+- **Bug de validateManagerAccess:** La IA validaba `targetUser.getBranch() == null` antes de verificar si quien llama es Admin, causando un error 403 falso. El desarrollador identificó la causa raíz; la IA propuso la corrección con early-return.
+- **Prueba de integración `contextLoads`:** La IA no consideró que el test necesitaba BD activa en el runner de Docker. El desarrollador indicó marcarlo con `@Disabled`.
+- **Mensaje de error case-sensitive:** Test fallaba porque `"username"` != `"Username"`. Detectado por el desarrollador al leer los logs.
+
+### Estimación de contribución
+| Componente | % Código IA | % Ajuste Manual |
+|---|---|---|
+| Backend (Java) | ~65% | ~35% |
+| Frontend (React/TS) | ~70% | ~30% |
+| Tests (JUnit/Mockito) | ~80% | ~20% |
+| Documentación | ~60% | ~40% |
+
+---
+
+## 5. Conclusión
+
+La IA operó como un **multiplicador de productividad técnica**, no como un sustituto del desarrollador. El rol del desarrollador fue: definir la arquitectura, validar la lógica de negocio, detectar los casos límite que la IA no anticipó, y mantener la coherencia entre las capas. El resultado es un sistema que cumple los estándares de la industria precisamente porque se combinó la velocidad generativa de la IA con el juicio crítico del desarrollador.
