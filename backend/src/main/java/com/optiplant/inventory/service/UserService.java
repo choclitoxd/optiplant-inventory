@@ -57,13 +57,16 @@ public class UserService {
 
     private void validateManagerAccess(User targetUser) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        if (!isAdmin) {
-            String username = auth.getName();
-            User currentUser = userRepository.findByUsername(username).orElseThrow();
-            if (targetUser.getBranch() == null || !targetUser.getBranch().getId().equals(currentUser.getBranch().getId())) {
-                throw new SecurityException("No tienes permiso para gestionar a este usuario.");
-            }
+        // Admin bypasses all branch isolation checks
+        if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) return;
+
+        String username = auth.getName();
+        User currentUser = userRepository.findByUsername(username).orElseThrow();
+        Long managerBranchId = currentUser.getBranch() != null ? currentUser.getBranch().getId() : null;
+        Long targetBranchId  = targetUser.getBranch()  != null ? targetUser.getBranch().getId()  : null;
+
+        if (managerBranchId == null || !managerBranchId.equals(targetBranchId)) {
+            throw new SecurityException("No tienes permiso para gestionar a este usuario.");
         }
     }
 

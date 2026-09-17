@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return Map.of("error", "Conflicto de base de datos o restricción única violada");
     }
 
+    @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> handleForbidden(SecurityException ex) {
+        return Map.of("error", ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleInternal(Exception ex) {
