@@ -14,7 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -125,7 +127,9 @@ public class UserService {
         user.setUsername(updateDTO.username());
         user.setEmail(updateDTO.email());
         user.setFullName(updateDTO.fullName());
-        user.setRoles(Collections.singleton(userRole));
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+        user.setRoles(roles);
         user.setBranch(branch);
 
         return userRepository.save(user);

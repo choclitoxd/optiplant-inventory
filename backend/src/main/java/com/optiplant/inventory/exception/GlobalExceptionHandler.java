@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return Map.of("error", "Conflicto de base de datos o restricción única violada");
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        return Map.of("error", "Acceso denegado: no tienes permisos para realizar esta acción.");
+    }
+
     @ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleForbidden(SecurityException ex) {
@@ -52,6 +58,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleInternal(Exception ex) {
         ex.printStackTrace();
-        return Map.of("error", "Error interno del servidor", "details", ex.getMessage());
+        String detail = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+        return Map.of("error", "Error interno del servidor", "details", detail);
     }
 }

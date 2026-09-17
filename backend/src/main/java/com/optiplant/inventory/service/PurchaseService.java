@@ -30,6 +30,10 @@ public class PurchaseService {
 
     @Transactional
     public PurchaseResponseDTO registerPurchase(PurchaseRequestDTO request) {
+        if (request.details() == null || request.details().isEmpty()) {
+            throw new IllegalArgumentException("La compra debe contener al menos un producto.");
+        }
+
         Branch branch = branchRepository.findById(request.branchId())
             .orElseThrow(() -> new IllegalArgumentException("Sucursal no encontrada"));
         Supplier supplier = supplierRepository.findById(request.supplierId())

@@ -110,6 +110,9 @@ public class TransferService {
             if (qReceived == null) {
                 throw new IllegalArgumentException("Falta especificar cantidad recibida para el detalle ID: " + detail.getId());
             }
+            if (qReceived < 0) {
+                throw new IllegalArgumentException("La cantidad recibida no puede ser negativa para el detalle ID: " + detail.getId());
+            }
             if (qReceived > detail.getQuantitySent()) {
                 throw new IllegalArgumentException("No se puede recibir más cantidad de la enviada para el detalle ID: " + detail.getId());
             }

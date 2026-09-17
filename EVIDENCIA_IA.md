@@ -64,6 +64,24 @@ En lugar de solicitar "genera todo el sistema", el desarrollador actuó como **a
 - **Resolución Docker Networking:** Detectó que el puerto 5432 de PostgreSQL no estaba mapeado al host (`0.0.0.0`) en `docker-compose.yml`, impidiendo a Beekeeper Studio conectar.
 - **Resolución Docker Volumes:** Explicó la inmutabilidad de los volúmenes persistentes (`postgres_data`) frente a cambios posteriores en `.env`, proporcionando la solución técnica: `docker compose down -v`.
 
+### Caso 4: Corrección de Error 403 Forbidden al Editar Usuario
+> *"Cuando edito un usuario en http://localhost:3000/users tengo este error cuando guardo lo cambios Request failed with status code 403"*
+
+**Qué generó la IA:**
+- **Diagnóstico Hibernate:** Identificó que `user.setRoles(Collections.singleton(userRole))` asignaba una colección inmutable que Hibernate 6 no podía persistir o limpiar en operaciones de actualización (`UnsupportedOperationException`). Se corrigió usando una instancia mutable `new HashSet<>()`.
+- **Diagnóstico Exception Handler:** Detectó que `GlobalExceptionHandler.handleInternal` producía `NullPointerException` al invocar `ex.getMessage()` cuando este era nulo, enmascarando el error original y provocando una redirección no deseada al endpoint `/error` (403 por seguridad). Se implementó un fallback seguro `ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName()`.
+
+---
+
+### Caso 5: Auditoría Ponytail y Blindaje contra Bugs Internos
+> *"/ponytail-review quiero que busque todo los bugs internos que tiene la apliacion"*
+
+**Qué generó la IA:**
+- **Detección de Brecha en Transferencias:** En `TransferService.receiveTransfer`, solo se validaba `qReceived > detail.getQuantitySent()`, pero no `qReceived < 0`. Se agregó validación para impedir que una recepción negativa afecte el inventario y distorsione el Kardex.
+- **Prevención de Comprobantes Fantasma:** En `SaleService.createSale` y `PurchaseService.registerPurchase`, se añadieron validaciones que impiden guardar transacciones con arreglos `details` vacíos o nulos ($0).
+- **Manejo Específico de AccessDeniedException:** Se añadió un manejador dedicado en `GlobalExceptionHandler` para capturar `org.springframework.security.access.AccessDeniedException` de Spring Security y retornar un cuerpo JSON estructurado (`403 Forbidden`) en lugar de respuestas vacías.
+- **Validación Automatizada:** Ejecución exitosa de la suite de 12 tests con Maven en entorno aislado de Docker.
+
 ---
 
 ## 4. Evaluación Crítica

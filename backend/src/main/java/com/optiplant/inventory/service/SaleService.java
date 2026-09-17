@@ -50,6 +50,10 @@ public class SaleService {
 
     @Transactional
     public SaleResponseDTO createSale(SaleRequestDTO request) {
+        if (request.details() == null || request.details().isEmpty()) {
+            throw new IllegalArgumentException("La venta debe contener al menos un producto.");
+        }
+
         Branch branch = branchRepository.findById(request.branchId())
                 .orElseThrow(() -> new IllegalArgumentException("Sucursal no encontrada."));
 
