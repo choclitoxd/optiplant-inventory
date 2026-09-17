@@ -9,7 +9,7 @@ spring:
 
 app:
   mailtrap:
-    token: "aae51cae7dae2428a4ff4fa9697559be"
+    token: "4ae0a8216b19c910672dbe23d1b05fa5"
 
 springdoc:
   api-docs:
