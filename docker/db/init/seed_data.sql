@@ -14,9 +14,9 @@ ON CONFLICT DO NOTHING;
 -- 3. USUARIOS (Escenario: RBAC y aislamiento por sucursal)
 -- Passwords are all 'admin123' (BCrypt hash)
 INSERT INTO users (id, username, email, password, full_name, branch_id, active) VALUES 
-(1, 'admin', 'admin@optiplant.com', '$2a$10$wY1vzscv7H3hD2Jc9IOf..9hXp1s0S/4fDMBkH31N4mB6Gz9XwLzW', 'Super Admin', null, true),
-(2, 'gerente_norte', 'gerente@norte.com', '$2a$10$wY1vzscv7H3hD2Jc9IOf..9hXp1s0S/4fDMBkH31N4mB6Gz9XwLzW', 'Gerente Norte', 2, true),
-(3, 'operador_norte', 'op@norte.com', '$2a$10$wY1vzscv7H3hD2Jc9IOf..9hXp1s0S/4fDMBkH31N4mB6Gz9XwLzW', 'Operador Norte', 2, true)
+(1, 'admin', 'admin@optiplant.com', '$2a$10$PTSmXyVHow7UTvsBjTvSqOtCsxVzaH22gj.Y2rhEM5DCgU2UJynPy', 'Super Admin', null, true),
+(2, 'gerente_norte', 'gerente@norte.com', '$2a$10$PTSmXyVHow7UTvsBjTvSqOtCsxVzaH22gj.Y2rhEM5DCgU2UJynPy', 'Gerente Norte', 2, true),
+(3, 'operador_norte', 'op@norte.com', '$2a$10$PTSmXyVHow7UTvsBjTvSqOtCsxVzaH22gj.Y2rhEM5DCgU2UJynPy', 'Operador Norte', 2, true)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO user_roles (user_id, role_id) VALUES 
