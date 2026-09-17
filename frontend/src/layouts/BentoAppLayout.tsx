@@ -71,7 +71,7 @@ export const BentoAppLayout: React.FC = () => {
     { name: 'Logística (Transferencias)', path: '/transfers', icon: Truck },
   ];
 
-  if (user?.roles?.includes(Role.ADMIN)) {
+  if (user?.roles?.includes(Role.ADMIN) || user?.roles?.includes(Role.BRANCH_MANAGER)) {
     navItems.push({ name: 'Gestión de Usuarios', path: '/users', icon: Users });
   }
 

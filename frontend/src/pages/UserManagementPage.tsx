@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { User } from '../types/user';
+import { Role } from '../types/user';
 import { userService } from '../services/userService';
-import { Users, Shield, Buildings, WarningCircle, UserPlus, MagnifyingGlass, Trash, PencilSimple } from '@phosphor-icons/react';
+import { useAuth } from '../context/AuthContext';
+import { Users, Shield, Buildings, WarningCircle, UserPlus, MagnifyingGlass, Trash, PencilSimple, Info } from '@phosphor-icons/react';
 import { UserModal } from '../components/users/UserModal';
 
 export const UserManagementPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
+  const isManager = currentUser?.roles?.includes(Role.BRANCH_MANAGER) && !currentUser?.roles?.includes(Role.ADMIN);
+
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -88,7 +93,7 @@ export const UserManagementPage: React.FC = () => {
 
   return (
     <div className="w-full h-full font-sans selection:bg-blue-200 p-2 md:p-8 overflow-y-auto custom-scrollbar">
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-3">
             <Users size={32} weight="duotone" className="text-blue-600" />
@@ -105,6 +110,16 @@ export const UserManagementPage: React.FC = () => {
           Nuevo Usuario
         </button>
       </header>
+
+      {/* Banner contextual para Gerentes */}
+      {isManager && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-center gap-3">
+          <Info size={20} weight="duotone" className="text-amber-500 shrink-0" />
+          <p className="text-sm font-medium">
+            Como <strong>Gerente de Sucursal</strong>, solo ves y gestionas a los usuarios de tu sucursal (ID #{currentUser?.branchId}). No puedes asignar el rol de Administrador.
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl flex items-center gap-3 font-medium">
