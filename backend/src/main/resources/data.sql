@@ -103,22 +103,22 @@ INSERT INTO sale (id, branch_id, sale_date, total_amount, user_id, created_at) V
 (2, 2, CURRENT_TIMESTAMP - INTERVAL '2 days', 90.00, 5, CURRENT_TIMESTAMP - INTERVAL '2 days'),
 (3, 3, CURRENT_TIMESTAMP - INTERVAL '1 days', 35.00, 7, CURRENT_TIMESTAMP - INTERVAL '1 days');
 
-INSERT INTO sale_detail (sale_id, product_id, quantity, unit_price, subtotal) VALUES 
-(1, 1, 5, 12.50, 62.50),
-(2, 4, 2, 45.00, 90.00),
-(3, 5, 1, 35.00, 35.00);
+INSERT INTO sale_detail (sale_id, product_id, quantity, unit_price, discount_percentage, subtotal) VALUES 
+(1, 1, 5, 12.50, 0.00, 62.50),
+(2, 4, 2, 45.00, 0.00, 90.00),
+(3, 5, 1, 35.00, 0.00, 35.00);
 
 -- 10. Transferencias - Se usa user_id = 2 (gerente_bogota)
 -- Fase 1: Transferencia Completada Totalmente
-INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, user_id) VALUES 
-(1, 1, 2, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '8 days', 'COMPLETED', 2);
+INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, estimated_arrival, receive_date, transporter, route_priority, status, user_id) VALUES 
+(1, 1, 2, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '9 days', CURRENT_TIMESTAMP - INTERVAL '8 days', 'Servientrega', 'Alta', 'COMPLETED', 2);
 
 INSERT INTO transfer_detail (transfer_id, product_id, quantity_sent, quantity_received) VALUES 
 (1, 1, 20, 20);
 
--- Fase 2: Transferencia Parcial con Mermas / Pérdidas (PARTIAL_RECEIPT)
-INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, receive_date, status, user_id) VALUES 
-(2, 2, 3, CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '1 days', 'COMPLETED', 2);
+-- Fase 2: Transferencia Parcial con Mermas / PAcrdidas (PARTIAL_RECEIPT)
+INSERT INTO transfer (id, origin_branch_id, destination_branch_id, send_date, estimated_arrival, receive_date, transporter, route_priority, status, user_id) VALUES 
+(2, 2, 3, CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '1 days', CURRENT_TIMESTAMP - INTERVAL '1 days', 'DHL', 'Estándar', 'PARTIAL', 2);
 
 INSERT INTO transfer_detail (transfer_id, product_id, quantity_sent, quantity_received) VALUES 
 (2, 4, 10, 8); -- Se enviaron 10, pero solo llegaron 8 (2 se perdieron en logística)

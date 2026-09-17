@@ -47,7 +47,7 @@ class SaleServiceTest {
         Long branchId = 1L;
         Long productId = 1L;
 
-        SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 5);
+        SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 5, BigDecimal.ZERO);
         SaleRequestDTO request = new SaleRequestDTO(branchId, List.of(detail));
 
         Branch branch = new Branch();
@@ -98,7 +98,7 @@ class SaleServiceTest {
         Long branchId = 1L;
         Long productId = 1L;
 
-        SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 50);
+        SaleDetailRequestDTO detail = new SaleDetailRequestDTO(productId, 50, BigDecimal.ZERO);
         SaleRequestDTO request = new SaleRequestDTO(branchId, List.of(detail));
 
         Branch branch = new Branch();

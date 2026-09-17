@@ -6,7 +6,9 @@ export interface TransferDetailRequest {
 export interface TransferSendRequest {
   originBranchId: number;
   destinationBranchId: number;
-  responsibleUser: string;
+  estimatedArrival?: string;
+  transporter?: string;
+  routePriority?: string;
   details: TransferDetailRequest[];
 }
 
@@ -16,7 +18,6 @@ export interface TransferReceiveDetail {
 }
 
 export interface TransferReceiveRequest {
-  responsibleUser: string;
   details: TransferReceiveDetail[];
 }
 
@@ -37,7 +38,10 @@ export interface TransferResponse {
   destinationBranchId: number;
   destinationBranchName: string;
   sendDate: string;
+  estimatedArrival: string | null;
   receiveDate: string | null;
+  transporter: string | null;
+  routePriority: string | null;
   status: TransferStatus;
   responsibleUser: string;
   details: TransferDetailResponse[];

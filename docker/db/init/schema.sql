@@ -106,6 +106,7 @@ CREATE TABLE sale_detail (
     quantity    INT NOT NULL CHECK (quantity > 0),
     unit_price  DECIMAL(10,2) NOT NULL,
     subtotal    DECIMAL(10,2) NOT NULL,
+    discount_percentage DECIMAL(5,2) DEFAULT 0.0,
     UNIQUE (sale_id, product_id)
 );
 
@@ -116,7 +117,10 @@ CREATE TABLE transfer (
     send_date           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     receive_date        TIMESTAMP,
     status              VARCHAR(20) NOT NULL,
-    user_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    user_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    estimated_arrival   TIMESTAMP,
+    transporter         VARCHAR(100),
+    route_priority      VARCHAR(50)
 );
 
 CREATE TABLE transfer_detail (

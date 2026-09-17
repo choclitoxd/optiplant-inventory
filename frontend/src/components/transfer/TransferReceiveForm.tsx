@@ -4,7 +4,6 @@ import { transferService } from '../../services/transferService';
 import { Warning } from '@phosphor-icons/react';
 
 export const TransferReceiveForm = ({ transfer, onSuccess, onCancel }: { transfer: TransferResponse, onSuccess: () => void, onCancel: () => void }) => {
-  const [responsibleUser, setResponsibleUser] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -16,16 +15,10 @@ export const TransferReceiveForm = ({ transfer, onSuccess, onCancel }: { transfe
   });
 
   const handleReceive = async () => {
-    if (!responsibleUser.trim()) {
-      setErrorMsg("Debe ingresar el usuario que recibe.");
-      return;
-    }
-
     setLoading(true);
     setErrorMsg(null);
     try {
       await transferService.receiveTransfer(transfer.id, {
-        responsibleUser,
         details: transfer.details.map(d => ({
           detailId: d.id,
           quantityReceived: receivedMap[d.id] || 0
@@ -54,14 +47,6 @@ export const TransferReceiveForm = ({ transfer, onSuccess, onCancel }: { transfe
 
         <div className="p-6 overflow-y-auto flex-1">
           {errorMsg && <div className="mb-4 bg-rose-50 text-rose-600 p-3 rounded-lg border border-rose-200 text-sm">{errorMsg}</div>}
-          
-          <input 
-            type="text" 
-            placeholder="Nombre de quien recibe..." 
-            value={responsibleUser}
-            onChange={e => setResponsibleUser(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-3 mb-6 outline-none focus:ring-2 focus:ring-indigo-500"
-          />
 
           <h3 className="font-semibold text-slate-700 mb-3">Conteo Físico</h3>
           <div className="space-y-3">

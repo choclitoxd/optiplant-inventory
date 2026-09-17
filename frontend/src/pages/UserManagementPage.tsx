@@ -198,7 +198,7 @@ export const UserManagementPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
                         <Buildings size={16} className="text-slate-400" weight="duotone" />
-                        {u.branchId ? `Sucursal #${u.branchId}` : 'Sede Principal (Global)'}
+                        {u.branch?.name || (u.branchId ? `Sucursal #${u.branchId}` : 'Sede Principal (Global)')}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

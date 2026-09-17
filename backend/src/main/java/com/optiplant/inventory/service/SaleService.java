@@ -77,15 +77,24 @@ public class SaleService {
             inventory.setStock(inventory.getStock() - detailDto.quantity());
             inventoryRepository.save(inventory);
 
+            // Descuento
+            BigDecimal discount = detailDto.discountPercentage() != null ? detailDto.discountPercentage() : BigDecimal.ZERO;
+            if (discount.compareTo(BigDecimal.ZERO) < 0 || discount.compareTo(new BigDecimal("100")) > 0) {
+                throw new IllegalArgumentException("El descuento debe estar entre 0 y 100.");
+            }
+
             // Calcular subtotales
             BigDecimal unitPrice = product.getBasePrice();
-            BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(detailDto.quantity())).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal rawSubtotal = unitPrice.multiply(BigDecimal.valueOf(detailDto.quantity()));
+            BigDecimal discountFactor = BigDecimal.ONE.subtract(discount.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP));
+            BigDecimal subtotal = rawSubtotal.multiply(discountFactor).setScale(2, RoundingMode.HALF_UP);
             
             SaleDetail detail = new SaleDetail();
             detail.setSale(sale);
             detail.setProduct(product);
             detail.setQuantity(detailDto.quantity());
             detail.setUnitPrice(unitPrice);
+            detail.setDiscountPercentage(discount);
             detail.setSubtotal(subtotal);
 
             details.add(detail);
@@ -114,6 +123,7 @@ public class SaleService {
                         d.getProduct().getName(),
                         d.getQuantity(),
                         d.getUnitPrice(),
+                        d.getDiscountPercentage(),
                         d.getSubtotal()
                 ))
                 .collect(Collectors.toList());

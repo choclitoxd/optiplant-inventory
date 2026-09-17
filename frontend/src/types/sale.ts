@@ -1,11 +1,11 @@
 export interface SaleDetailRequest {
   productId: number;
   quantity: number;
+  discountPercentage?: number;
 }
 
 export interface SaleRequest {
   branchId: number;
-  responsibleUser: string;
   details: SaleDetailRequest[];
 }
 
@@ -15,6 +15,7 @@ export interface SaleDetailResponse {
   productName: string;
   quantity: number;
   unitPrice: number;
+  discountPercentage: number;
   subtotal: number;
 }
 

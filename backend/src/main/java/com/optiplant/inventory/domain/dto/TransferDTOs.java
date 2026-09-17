@@ -13,6 +13,9 @@ public class TransferDTOs {
     public record TransferSendRequestDTO(
             @NotNull(message = "Origin branch ID is required") Long originBranchId,
             @NotNull(message = "Destination branch ID is required") Long destinationBranchId,
+            LocalDateTime estimatedArrival,
+            String transporter,
+            String routePriority,
             @NotEmpty(message = "Transfer details cannot be empty") List<TransferDetailRequestDTO> details
     ) {}
 
@@ -39,7 +42,10 @@ public class TransferDTOs {
             Long destinationBranchId,
             String destinationBranchName,
             LocalDateTime sendDate,
+            LocalDateTime estimatedArrival,
             LocalDateTime receiveDate,
+            String transporter,
+            String routePriority,
             TransferStatus status,
             String responsibleUser,
             List<TransferDetailResponseDTO> details

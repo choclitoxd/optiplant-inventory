@@ -26,7 +26,10 @@ public class SaleDTOs {
             
             @Schema(description = "Cantidad a vender", example = "2")
             @NotNull(message = "Quantity is required")
-            @Positive(message = "Quantity must be greater than zero") Integer quantity
+            @Positive(message = "Quantity must be greater than zero") Integer quantity,
+
+            @Schema(description = "Porcentaje de descuento", example = "10.00")
+            BigDecimal discountPercentage
     ) {}
 
     public record SaleResponseDTO(
@@ -45,6 +48,7 @@ public class SaleDTOs {
             String productName,
             Integer quantity,
             BigDecimal unitPrice,
+            BigDecimal discountPercentage,
             BigDecimal subtotal
     ) {}
 }

@@ -184,11 +184,24 @@ export const TransferHistory = ({ refreshTrigger }: { refreshTrigger: number }) 
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-200/60 text-slate-500">
-                    <User size={14} weight="bold" />
-                    <span className="text-xs font-semibold">Emitido por: {transfer.responsibleUser}</span>
-                    <span className="text-slate-300 ml-auto">•</span>
-                    <span className="text-xs font-medium">{new Date(transfer.sendDate).toLocaleDateString()}</span>
+                  <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-slate-200/60 text-slate-500">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <User size={14} weight="bold" />
+                        <span className="text-xs font-semibold">Emitido por: {transfer.responsibleUser}</span>
+                      </div>
+                      <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase font-bold">{transfer.routePriority || 'ESTANDAR'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Truck size={14} weight="duotone" className="text-blue-500" />
+                        <span className="font-semibold text-slate-600">{transfer.transporter || 'N/A'}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[9px] uppercase font-bold text-slate-400">Llegada Estimada</span>
+                        <span className="font-bold text-blue-600">{transfer.estimatedArrival ? new Date(transfer.estimatedArrival).toLocaleDateString() : 'Pendiente'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 

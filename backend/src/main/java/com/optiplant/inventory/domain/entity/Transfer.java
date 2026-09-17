@@ -23,8 +23,17 @@ public class Transfer {
     @Column(name = "send_date", nullable = false)
     private LocalDateTime sendDate;
 
+    @Column(name = "estimated_arrival")
+    private LocalDateTime estimatedArrival;
+
     @Column(name = "receive_date")
     private LocalDateTime receiveDate;
+
+    @Column(name = "transporter", length = 100)
+    private String transporter;
+
+    @Column(name = "route_priority", length = 50)
+    private String routePriority;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -46,8 +55,14 @@ public class Transfer {
     public void setDestinationBranch(Branch destinationBranch) { this.destinationBranch = destinationBranch; }
     public LocalDateTime getSendDate() { return sendDate; }
     public void setSendDate(LocalDateTime sendDate) { this.sendDate = sendDate; }
+    public LocalDateTime getEstimatedArrival() { return estimatedArrival; }
+    public void setEstimatedArrival(LocalDateTime estimatedArrival) { this.estimatedArrival = estimatedArrival; }
     public LocalDateTime getReceiveDate() { return receiveDate; }
     public void setReceiveDate(LocalDateTime receiveDate) { this.receiveDate = receiveDate; }
+    public String getTransporter() { return transporter; }
+    public void setTransporter(String transporter) { this.transporter = transporter; }
+    public String getRoutePriority() { return routePriority; }
+    public void setRoutePriority(String routePriority) { this.routePriority = routePriority; }
     public TransferStatus getStatus() { return status; }
     public void setStatus(TransferStatus status) { this.status = status; }
     public User getResponsibleUser() { return responsibleUser; }

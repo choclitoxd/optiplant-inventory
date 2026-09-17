@@ -55,6 +55,9 @@ public class TransferService {
         transfer.setOriginBranch(origin);
         transfer.setDestinationBranch(destination);
         transfer.setSendDate(LocalDateTime.now());
+        transfer.setEstimatedArrival(request.estimatedArrival());
+        transfer.setTransporter(request.transporter());
+        transfer.setRoutePriority(request.routePriority());
         transfer.setStatus(TransferStatus.IN_TRANSIT);
         transfer.setResponsibleUser(getAuthenticatedUser());
 
@@ -183,7 +186,10 @@ public class TransferService {
                 transfer.getDestinationBranch().getId(),
                 transfer.getDestinationBranch().getName(),
                 transfer.getSendDate(),
+                transfer.getEstimatedArrival(),
                 transfer.getReceiveDate(),
+                transfer.getTransporter(),
+                transfer.getRoutePriority(),
                 transfer.getStatus(),
                 transfer.getResponsibleUser().getUsername(),
                 detailDTOs

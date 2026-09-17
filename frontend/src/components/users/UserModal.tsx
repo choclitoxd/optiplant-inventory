@@ -47,7 +47,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSaved, 
           password: '',
           fullName: user.fullName,
           role: userRoleStr,
-          branchId: user.branchId || '',
+          branchId: user.branch?.id || user.branchId || '',
         });
       } else {
         setFormData({

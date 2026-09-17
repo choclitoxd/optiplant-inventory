@@ -6,18 +6,14 @@ import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { saleService } from '../../services/saleService';
 import { Dropdown } from '../ui/Dropdown';
-import { UserSearchSelect } from '../users/UserSearchSelect';
-import { useAuth } from '../../context/AuthContext';
 
 export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
-  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
   
   const [selectedBranch, setSelectedBranch] = useState<number>(0);
-  const [responsibleUser, setResponsibleUser] = useState<string>(user?.username || '');
-  const [cart, setCart] = useState<(SaleDetailRequest & { product: Product })[]>([]);
+  const [cart, setCart] = useState<(SaleDetailRequest & { product: Product, discountPercentage: number })[]>([]);
   const [search, setSearch] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -50,7 +46,7 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         if (existing.quantity >= stock) return prev; // Prevenir sobreventa
         return prev.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { productId: product.id, quantity: 1, product }];
+      return [...prev, { productId: product.id, quantity: 1, discountPercentage: 0, product }];
     });
   };
 
@@ -76,15 +72,29 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }));
   };
 
+  const setDiscount = (productId: number, discount: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.productId === productId) {
+        const clampedDiscount = Math.max(0, Math.min(100, discount));
+        return { ...item, discountPercentage: clampedDiscount };
+      }
+      return item;
+    }));
+  };
+
   const removeFromCart = (productId: number) => {
     setCart(prev => prev.filter(item => item.productId !== productId));
   };
 
-  const total = useMemo(() => cart.reduce((sum, item) => sum + (item.product.basePrice * item.quantity), 0), [cart]);
+  const total = useMemo(() => cart.reduce((sum, item) => {
+    const itemSubtotal = item.product.basePrice * item.quantity;
+    const discountAmount = itemSubtotal * ((item.discountPercentage || 0) / 100);
+    return sum + (itemSubtotal - discountAmount);
+  }, 0), [cart]);
 
   const handleCheckout = async () => {
-    if (cart.length === 0 || !responsibleUser.trim()) {
-      setErrorMsg("Debe ingresar un usuario y agregar al menos un producto.");
+    if (cart.length === 0) {
+      setErrorMsg("Debe agregar al menos un producto.");
       return;
     }
     
@@ -93,18 +103,14 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     try {
       await saleService.processSale({
         branchId: selectedBranch,
-        responsibleUser,
-        details: cart.map(c => ({ productId: c.productId, quantity: c.quantity }))
+        details: cart.map(c => ({ productId: c.productId, quantity: c.quantity, discountPercentage: c.discountPercentage || 0 }))
       });
       setCart([]);
-      setResponsibleUser('');
-      // Refresh inventory
       const invs = await inventoryService.getByBranch(selectedBranch);
       setInventories(invs);
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      // Handle HTTP 400/409 Insufficient Stock Error
-      setErrorMsg(err.response?.data?.error || "Error al procesar la venta. Intente de nuevo.");
+      setErrorMsg(err.response?.data?.error || "Error al procesar la venta.");
     } finally {
       setLoading(false);
     }
@@ -243,16 +249,6 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           </div>
         )}
 
-        {/* Input Cajero */}
-        <div className="relative z-10 mb-4">
-          <UserSearchSelect 
-            value={responsibleUser}
-            onChange={setResponsibleUser}
-            placeholder="Buscar cajero responsable..."
-            disabled={user?.roles?.includes('ROLE_OPERATOR')}
-          />
-        </div>
-
         {/* Lista de Ítems (Ticket) */}
         <div className="relative z-10 flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
           {cart.length === 0 ? (
@@ -265,13 +261,31 @@ export const POSForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             <div key={item.productId} className="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 p-3 rounded-2xl transition-colors">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-bold text-slate-200 text-sm pr-2 leading-snug">{item.product.name}</h4>
-                <div className="text-right">
-                  <span className="font-black text-emerald-400">${(item.product.basePrice * item.quantity).toFixed(2)}</span>
+                <div className="text-right flex flex-col items-end">
+                  <span className="font-black text-emerald-400">
+                    ${((item.product.basePrice * item.quantity) * (1 - (item.discountPercentage || 0) / 100)).toFixed(2)}
+                  </span>
+                  {item.discountPercentage > 0 && (
+                    <span className="text-[10px] line-through text-slate-500 font-bold">${(item.product.basePrice * item.quantity).toFixed(2)}</span>
+                  )}
                 </div>
               </div>
               
               <div className="flex items-center justify-between mt-3">
-                <span className="text-slate-400 text-xs font-medium">${item.product.basePrice.toFixed(2)} c/u</span>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 text-xs font-medium">${item.product.basePrice.toFixed(2)} c/u</span>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Desc %</span>
+                    <input 
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={item.discountPercentage || ''}
+                      onChange={(e) => setDiscount(item.productId, Number(e.target.value))}
+                      className="w-12 text-center text-xs font-bold text-emerald-300 bg-slate-900 border border-slate-700 rounded p-0.5 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-700">
                     <button onClick={() => updateQuantity(item.productId, -1)} className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded-md transition-colors"><Minus size={12} weight="bold" /></button>

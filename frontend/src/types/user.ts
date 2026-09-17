@@ -13,5 +13,10 @@ export interface User {
   fullName: string;
   roles: RoleType[];
   branchId: number | null;
+  branch?: {
+    id: number;
+    name: string;
+    address?: string;
+  } | null;
   active?: boolean;
 }

@@ -56,6 +56,14 @@ En lugar de solicitar "genera todo el sistema", el desarrollador actuó como **a
 - Implementada en `PurchaseService.java` dentro de una transacción
 - Validada con test: `PurchaseServiceTest` — stock=10 a $80 + 10 a $120 = CPP de $100 exacto ✓
 
+### Prompt 4 — Depuración de Integración y Docker Volumes
+> *"Tengo un problema es que en /users sucursal ID aprace todos con la misma sucursal esto a que se debe [...] ademas quisiera que me dijiera lo de coneccion de la base datos ya que me dice que password incorrecta"*
+
+**Qué generó la IA:**
+- **Resolución Bug Frontend-Backend:** Identificó que el JSON de Spring Boot anidaba `branch: { id: 1, name: "..." }` y el frontend buscaba una clave plana `branchId` (evaluándose como undefined). Sugirió agregar `@JsonProperty("branchId")` en el backend y optimizar la interfaz en React para renderizar el `branch.name` real.
+- **Resolución Docker Networking:** Detectó que el puerto 5432 de PostgreSQL no estaba mapeado al host (`0.0.0.0`) en `docker-compose.yml`, impidiendo a Beekeeper Studio conectar.
+- **Resolución Docker Volumes:** Explicó la inmutabilidad de los volúmenes persistentes (`postgres_data`) frente a cambios posteriores en `.env`, proporcionando la solución técnica: `docker compose down -v`.
+
 ---
 
 ## 4. Evaluación Crítica

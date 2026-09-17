@@ -125,7 +125,14 @@ export const SalesHistory = () => {
                     <div key={detail.id} className="flex justify-between items-center bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 group-hover:bg-white group-hover:border-emerald-100 transition-colors">
                       <div className="flex-1 min-w-0 pr-3">
                         <p className="font-semibold text-slate-700 text-sm truncate">{detail.productName}</p>
-                        <p className="text-xs text-slate-400 font-medium">${detail.unitPrice.toFixed(2)} c/u</p>
+                        <div className="flex gap-2 items-center mt-0.5">
+                          <p className="text-[11px] text-slate-400 font-medium">${detail.unitPrice.toFixed(2)} c/u</p>
+                          {detail.discountPercentage > 0 && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">
+                              -{detail.discountPercentage}%
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right flex items-center gap-3">
                         <span className="text-xs font-bold text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-md">x{detail.quantity}</span>

@@ -1,5 +1,6 @@
 package com.optiplant.inventory.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -72,5 +73,10 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+
+    @JsonProperty("branchId")
+    public Long getBranchId() {
+        return branch != null ? branch.getId() : null;
     }
 }

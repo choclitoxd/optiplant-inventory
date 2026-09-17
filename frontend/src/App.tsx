@@ -30,11 +30,11 @@ function App() {
             <Route path="sales" element={<SalesPage />} />
             <Route path="transfers" element={<TransferPage />} />
             
-            {/* Admin Only Route */}
+            {/* Admin and Branch Manager Route */}
             <Route 
               path="users" 
               element={
-                <ProtectedRoute allowedRoles={[Role.ADMIN]}>
+                <ProtectedRoute allowedRoles={[Role.ADMIN, Role.BRANCH_MANAGER]}>
                   <UserManagementPage />
                 </ProtectedRoute>
               } 

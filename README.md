@@ -36,28 +36,49 @@ docker compose up --build
 
 ## Arquitectura del Sistema
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENTE WEB                          │
-│              React + TypeScript + Vite                  │
-│      Axios → JWT en header Authorization Bearer         │
-└────────────────────┬────────────────────────────────────┘
-                     │ HTTP REST (JSON)
-┌────────────────────▼────────────────────────────────────┐
-│                 SPRING BOOT API                          │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐ │
-│  │Controllers│→│ Services │→│ JPA Repositories       │ │
-│  │@RestCtrl  │  │@Service  │  │ Spring Data            │ │
-│  │@PreAuth   │  │@Transact.│  │ + @Lock PESSIMISTIC    │ │
-│  └──────────┘  └──────────┘  └────────────────────────┘ │
-│  Spring Security: JWT Filter → SecurityContextHolder     │
-└────────────────────┬────────────────────────────────────┘
-                     │ TCP 5432
-┌────────────────────▼────────────────────────────────────┐
-│                  POSTGRESQL 15                           │
-│   product / branch / inventory / sale / purchase        │
-│   transfer / user / role / inventory_adjustment         │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    %% Definición de estilos
+    classDef frontend fill:#0ea5e9,stroke:#0284c7,stroke-width:2px,color:#fff,font-weight:bold,rx:10,ry:10;
+    classDef backend fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff,font-weight:bold,rx:10,ry:10;
+    classDef database fill:#6366f1,stroke:#4338ca,stroke-width:2px,color:#fff,font-weight:bold,rx:10,ry:10;
+    classDef component fill:#f8fafc,stroke:#cbd5e1,stroke-width:1px,color:#334155,font-weight:normal,rx:5,ry:5;
+    classDef auth fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff,font-weight:bold,rx:10,ry:10;
+
+    subgraph FrontEnd ["CLIENTE WEB (React 18 + TS + Vite)"]
+        direction TB
+        UI["💻 Componentes UI<br/>(Dashboard, POS, Tablas)"]:::component
+        AuthC["🔐 AuthContext<br/>(Gestión de Sesión)"]:::component
+        API_C["🌐 Cliente HTTP<br/>(Axios)"]:::component
+        
+        UI --> AuthC
+        UI --> API_C
+        AuthC --> API_C
+    end
+    class FrontEnd frontend;
+
+    subgraph BackEnd ["API REST (Java 21 + Spring Boot 3)"]
+        direction TB
+        Security["🛡️ Spring Security<br/>(Filtro JWT & RBAC)"]:::auth
+        Controllers["📡 Controladores REST<br/>(@RestController)"]:::component
+        Services["⚙️ Servicios de Negocio<br/>(@Transactional)"]:::component
+        Repositories["💾 Repositorios JPA<br/>(Spring Data)"]:::component
+
+        Security --> Controllers
+        Controllers --> Services
+        Services --> Repositories
+    end
+    class BackEnd backend;
+
+    subgraph DataBase ["ALMACENAMIENTO (PostgreSQL 15)"]
+        direction TB
+        DB["🗄️ Esquema Relacional<br/>(ACID + Bloqueo Pesimista)"]:::database
+    end
+    class DataBase database;
+
+    %% Flujos de comunicación
+    API_C -- "HTTP / REST (JSON)\nAuthorization: Bearer JWT" --> Security
+    Repositories -- "JDBC / TCP 5432" --> DB
 ```
 
 ---

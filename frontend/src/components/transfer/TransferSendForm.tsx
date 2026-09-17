@@ -6,18 +6,19 @@ import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
 import { transferService } from '../../services/transferService';
 import { Dropdown } from '../ui/Dropdown';
-import { UserSearchSelect } from '../users/UserSearchSelect';
-import { useAuth } from '../../context/AuthContext';
 
 export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
-  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
   
   const [originBranchId, setOriginBranchId] = useState<number>(0);
   const [destBranchId, setDestBranchId] = useState<number>(0);
-  const [responsibleUser, setResponsibleUser] = useState<string>(user?.username || '');
+  
+  const [transporter, setTransporter] = useState('');
+  const [estimatedArrival, setEstimatedArrival] = useState('');
+  const [routePriority, setRoutePriority] = useState('Estándar');
+
   const [search, setSearch] = useState('');
   
   const [cart, setCart] = useState<(TransferDetailRequest & { product: Product })[]>([]);
@@ -86,8 +87,12 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       setErrorMsg("La sucursal de origen y destino no pueden ser la misma.");
       return;
     }
-    if (cart.length === 0 || !responsibleUser.trim()) {
-      setErrorMsg("Debe ingresar un usuario y agregar al menos un producto.");
+    if (cart.length === 0) {
+      setErrorMsg("Debe agregar al menos un producto.");
+      return;
+    }
+    if (!estimatedArrival || !transporter.trim()) {
+      setErrorMsg("Debe especificar el transportista y la fecha estimada de llegada.");
       return;
     }
     
@@ -97,11 +102,15 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       await transferService.sendTransfer({
         originBranchId,
         destinationBranchId: destBranchId,
-        responsibleUser,
+        transporter,
+        routePriority,
+        estimatedArrival: new Date(estimatedArrival).toISOString(),
         details: cart.map(c => ({ productId: c.productId, quantitySent: c.quantitySent }))
       });
       setCart([]);
-      setResponsibleUser('');
+      setTransporter('');
+      setEstimatedArrival('');
+      setRoutePriority('Estándar');
       const invs = await inventoryService.getByBranch(originBranchId);
       setInventories(invs);
       if (onSuccess) onSuccess();
@@ -168,6 +177,41 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               themeColor="#2563eb"
               className="w-full font-bold text-lg"
             />
+          </div>
+        </div>
+        
+        {/* LogA-stica */}
+        <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col md:flex-row gap-4">
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
+            <label className="block text-xs font-bold text-slate-500 mb-1">Transportista</label>
+            <input 
+              type="text" 
+              value={transporter}
+              onChange={e => setTransporter(e.target.value)}
+              placeholder="Ej. DHL, Servientrega"
+              className="w-full bg-transparent border-none text-slate-700 text-sm font-bold outline-none placeholder:text-slate-300 placeholder:font-normal p-0"
+            />
+          </div>
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
+            <label className="block text-xs font-bold text-slate-500 mb-1">Llegada Estimada</label>
+            <input 
+              type="datetime-local" 
+              value={estimatedArrival}
+              onChange={e => setEstimatedArrival(e.target.value)}
+              className="w-full bg-transparent border-none text-slate-700 text-sm font-bold outline-none p-0"
+            />
+          </div>
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-all">
+            <label className="block text-xs font-bold text-slate-500 mb-1">Prioridad</label>
+            <select 
+              value={routePriority}
+              onChange={e => setRoutePriority(e.target.value)}
+              className="w-full bg-transparent border-none text-slate-700 text-sm font-bold outline-none p-0"
+            >
+              <option value="Alta">Alta</option>
+              <option value="Estándar">Estándar</option>
+              <option value="Baja">Baja</option>
+            </select>
           </div>
         </div>
         
@@ -262,15 +306,6 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               <h2 className="text-xl font-bold text-white leading-tight">Cargamento</h2>
               <p className="text-xs text-slate-400 font-medium">Orden de despacho</p>
             </div>
-          </div>
-
-          <div className="relative z-10 mb-4">
-            <UserSearchSelect 
-              value={responsibleUser}
-              onChange={setResponsibleUser}
-              placeholder="Buscar responsable del envío..."
-              disabled={user?.roles?.includes('ROLE_OPERATOR')}
-            />
           </div>
 
           <div className="relative z-10 flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
