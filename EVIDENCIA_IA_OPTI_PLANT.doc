@@ -1,0 +1,50 @@
+
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><title>Evidencia IA - OptiPlant</title></head>
+<body style="font-family: Calibri, sans-serif;">
+    <h1 style="color: #2c3e50;">🤖 Evidencia de Uso de IA y Análisis de Prompts</h1>
+    <p>Este documento contiene todo el contexto de nuestra conversación y el registro completo de los prompts enviados durante el desarrollo de la prueba técnica <b>OptiPlant ERP</b>.</p>
+    
+    <h2 style="color: #34495e;">1. Estructura y Metodología</h2>
+    <p>El proyecto se estructuró bajo una arquitectura estricta de 3 capas, separando responsabilidades:</p>
+    <ul>
+        <li><b>Frontend (/frontend)</b>: React + TypeScript + Vite + TailwindCSS.</li>
+        <li><b>Backend (/backend)</b>: Java 21 + Spring Boot 3 + Spring Data JPA.</li>
+        <li><b>Base de Datos</b>: PostgreSQL 15.</li>
+    </ul>
+
+    <h2 style="color: #34495e;">2. Análisis de Costo (Tokens) y Desafíos</h2>
+    <table border="1" style="border-collapse: collapse; width: 100%;">
+        <tr style="background-color: #ecf0f1;">
+            <th style="padding: 8px;">Tipo de Tarea</th>
+            <th style="padding: 8px;">Consumo de Tokens (Estimado)</th>
+            <th style="padding: 8px;">Nivel de Dificultad para IA</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Depuración de Mailtrap y @Async</td>
+            <td style="padding: 8px;">🔴 Alto (~12k tokens)</td>
+            <td style="padding: 8px;">Muy Alto (Múltiples archivos Java y POM)</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Errores CORS y Controladores</td>
+            <td style="padding: 8px;">🟠 Medio-Alto (~6k tokens)</td>
+            <td style="padding: 8px;">Alto (Filtros de Spring Security)</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Componente Dropdown UI Personalizado</td>
+            <td style="padding: 8px;">🟡 Medio (~4k tokens)</td>
+            <td style="padding: 8px;">Medio (Restricciones CSS estrictas)</td>
+        </tr>
+    </table>
+
+    <h2 style="color: #34495e;">3. Registro Completo de Prompts de la Sesión</h2>
+    <p>A continuación se listan todos los requerimientos (prompts) que se solicitaron a lo largo de la conversación. Los prompts idénticos o repetidos múltiples veces se han agrupado, indicando cuántas veces fueron enviados (útil para diagnosticar qué problemas costaron más iteraciones).</p>
+    
+    <ul>
+        
+    </ul>
+    
+    <h2 style="color: #34495e;">4. Conclusión</h2>
+    <p>La IA logró completar los desafíos actuando como desarrollador Senior de Full-Stack. Al enviar prompts más pequeños e iterativos (como se evidencia en la lista anterior), el consumo de tokens y el índice de errores se mantuvo bajo control. El enfoque de "Pair-programming" funcionó excepcionalmente bien para resolver bloqueos de despliegue y diseño CSS.</p>
+</body>
+</html>

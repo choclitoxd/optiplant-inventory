@@ -4,9 +4,15 @@ import type { Supplier } from '../../types/supplier';
 import type { PurchaseDetailRequest } from '../../types/purchase';
 import { Dropdown } from '../ui/Dropdown';
 
+import { branchService } from '../../services/branchService';
+import { productService } from '../../services/productService';
+import type { Branch, Product } from '../../types';
+
 export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [branchId, setBranchId] = useState<number>(1);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [branchId, setBranchId] = useState<number>(0);
   const [supplierId, setSupplierId] = useState<number>(0);
   const [responsibleUser, setResponsibleUser] = useState('');
   const [details, setDetails] = useState<PurchaseDetailRequest[]>([]);
@@ -15,6 +21,8 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   useEffect(() => {
     purchaseService.getSuppliers().then(setSuppliers).catch(() => setError('Error cargando proveedores. Asegúrate de tener proveedores creados.'));
+    branchService.getAll().then(res => setBranches(res.filter(b => b.active)));
+    productService.getAll().then(setProducts);
   }, []);
 
   const totalAmount = useMemo(() => details.reduce((acc, item) => acc + (item.quantity * item.unitCost), 0), [details]);
@@ -22,9 +30,21 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const addLine = () => setDetails([...details, { productId: 0, quantity: 1, unitCost: 0 }]);
   const removeLine = (idx: number) => setDetails(details.filter((_, i) => i !== idx));
   const updateLine = (idx: number, field: keyof PurchaseDetailRequest, val: number) => {
-    const newDetails = [...details];
-    newDetails[idx] = { ...newDetails[idx], [field]: val };
-    setDetails(newDetails);
+    setDetails(prev => {
+      const newDetails = [...prev];
+      newDetails[idx] = { ...newDetails[idx], [field]: val };
+      return newDetails;
+    });
+  };
+
+  const selectProduct = (idx: number, productId: number) => {
+    const prod = products.find(p => p.id === productId);
+    if (!prod) return;
+    setDetails(prev => {
+      const newDetails = [...prev];
+      newDetails[idx] = { ...newDetails[idx], productId, unitCost: prod.basePrice };
+      return newDetails;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,21 +81,31 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Proveedor</label>
-          <Dropdown 
-            options={suppliers.map(s => ({ value: s.id as number, label: s.companyName }))}
-            value={supplierId || ''}
-            onChange={(val) => setSupplierId(Number(val))}
-            placeholder="Seleccione un proveedor"
-            themeColor="#2563eb" 
-          />
+          <div className="z-50 relative">
+            <Dropdown 
+              options={suppliers.map(s => ({ value: s.id as number, label: s.companyName }))}
+              value={supplierId || ''}
+              onChange={(val) => setSupplierId(Number(val))}
+              placeholder="Seleccione un proveedor"
+              themeColor="#2563eb" 
+            />
+          </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">ID Sucursal Destino</label>
-          <input type="number" required min={1} className="w-full border border-slate-300 rounded-md p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50 focus:bg-white transition-colors" value={branchId} onChange={e => setBranchId(Number(e.target.value))} />
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Sucursal Destino</label>
+          <div className="z-40 relative">
+            <Dropdown 
+              options={branches.map(b => ({ value: b.id, label: b.name }))}
+              value={branchId || ''}
+              onChange={(val) => setBranchId(Number(val))}
+              placeholder="Seleccione una sucursal"
+              themeColor="#2563eb" 
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Usuario Responsable</label>
-          <input required className="w-full border border-slate-300 rounded-md p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50 focus:bg-white transition-colors" placeholder="Ej. Juan Pérez" value={responsibleUser} onChange={e => setResponsibleUser(e.target.value)} />
+          <input required className="w-full border border-slate-300 rounded-md p-[11px] focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-slate-50 focus:bg-white transition-colors" placeholder="Ej. Juan Pérez" value={responsibleUser} onChange={e => setResponsibleUser(e.target.value)} />
         </div>
       </div>
 
@@ -94,10 +124,18 @@ export const PurchaseForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         ) : (
           <div className="space-y-2">
             {details.map((item, idx) => (
-              <div key={idx} className="flex gap-3 items-center bg-white p-2 rounded-md border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
-                <input type="number" required placeholder="ID Producto" className="flex-1 border-0 bg-slate-50 focus:bg-white rounded px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={item.productId || ''} onChange={e => updateLine(idx, 'productId', Number(e.target.value))} />
-                <input type="number" required min={1} placeholder="Cant." className="w-24 border-0 bg-slate-50 focus:bg-white rounded px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={item.quantity || ''} onChange={e => updateLine(idx, 'quantity', Number(e.target.value))} />
-                <input type="number" required min={0.01} step="0.01" placeholder="Costo Unit." className="w-32 border-0 bg-slate-50 focus:bg-white rounded px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={item.unitCost || ''} onChange={e => updateLine(idx, 'unitCost', Number(e.target.value))} />
+              <div key={idx} className="flex gap-3 items-center bg-white p-2 rounded-md border border-slate-200 hover:border-slate-300 transition-colors shadow-sm overflow-visible">
+                <div className="flex-1 min-w-[200px] z-30">
+                  <Dropdown 
+                    options={products.map(p => ({ value: p.id as number, label: `${p.sku} - ${p.name}` }))}
+                    value={item.productId || ''}
+                    onChange={(val) => selectProduct(idx, Number(val))}
+                    placeholder="Seleccione Producto"
+                    themeColor="#2563eb"
+                  />
+                </div>
+                <input type="number" required min={1} placeholder="Cant." className="w-24 border-0 bg-slate-50 focus:bg-white rounded px-3 py-[10px] text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={item.quantity || ''} onChange={e => updateLine(idx, 'quantity', Number(e.target.value))} />
+                <input type="number" required min={0.01} step="0.01" placeholder="Costo Unit." className="w-32 border-0 bg-slate-50 focus:bg-white rounded px-3 py-[10px] text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={item.unitCost || ''} onChange={e => updateLine(idx, 'unitCost', Number(e.target.value))} />
                 <div className="w-28 text-right font-medium text-emerald-600 text-sm bg-emerald-50 py-2 rounded">
                   ${(item.quantity * item.unitCost).toLocaleString(undefined, {minimumFractionDigits: 2})}
                 </div>

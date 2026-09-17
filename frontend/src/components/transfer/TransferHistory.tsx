@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Truck, Clock, Checks, XCircle, Path, DownloadSimple, User, Storefront, MagnifyingGlass } from '@phosphor-icons/react';
+import { Truck, Clock, Checks, XCircle, Path, DownloadSimple, User, MagnifyingGlass } from '@phosphor-icons/react';
 import type { Branch } from '../../types';
 import type { TransferResponse } from '../../types/transfer';
 import { branchService } from '../../services/branchService';
 import { transferService } from '../../services/transferService';
 import { TransferReceiveForm } from './TransferReceiveForm';
+import { Dropdown } from '../ui/Dropdown';
 
 export const TransferHistory = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -112,16 +113,14 @@ export const TransferHistory = ({ refreshTrigger }: { refreshTrigger: number }) 
             />
           </div>
 
-          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-            <Storefront size={18} className="text-slate-400" weight="bold" />
-            <select 
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(Number(e.target.value))}
-              className="w-full sm:w-48 bg-transparent text-slate-700 text-sm rounded-xl outline-none font-medium p-2.5 cursor-pointer appearance-none"
-            >
-              {branches.length === 0 && <option value={0}>Cargando...</option>}
-              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+          <div className="w-full sm:w-64 z-40 relative">
+            <Dropdown
+              options={branches.map(b => ({ value: b.id as number, label: b.name }))}
+              value={selectedBranch || ''}
+              onChange={(val) => setSelectedBranch(Number(val))}
+              placeholder={branches.length === 0 ? "Cargando..." : "Selecciona una sucursal"}
+              themeColor="#3b82f6" // blue-500
+            />
           </div>
         </div>
       </div>

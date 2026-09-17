@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Branch, Inventory, Product } from '../../types';
 import { branchService, inventoryService } from '../../services/branchService';
 import { productService } from '../../services/productService';
+import { Dropdown } from '../ui/Dropdown';
 
 export const BranchStockView = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -35,14 +36,15 @@ export const BranchStockView = () => {
     <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-2xl font-semibold text-slate-800 tracking-tight">Control de Stock Local</h2>
-        <select 
-          className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full md:w-64 p-2.5 outline-none font-medium"
-          value={selectedBranch}
-          onChange={(e) => setSelectedBranch(Number(e.target.value))}
-        >
-          {branches.length === 0 && <option value={0}>Sin sucursales...</option>}
-          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </select>
+        <div className="w-full md:w-64 z-40">
+          <Dropdown
+            options={branches.map(b => ({ value: b.id, label: b.name }))}
+            value={selectedBranch}
+            onChange={(v) => setSelectedBranch(Number(v))}
+            placeholder={branches.length === 0 ? "Sin sucursales..." : "Selecciona una sucursal"}
+            themeColor="#4f46e5" // indigo-600
+          />
+        </div>
       </div>
 
       {loading ? (

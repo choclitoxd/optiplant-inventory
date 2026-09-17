@@ -67,6 +67,17 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }));
   };
 
+  const setExactQuantity = (productId: number, quantity: number) => {
+    const stock = inventories.find(i => i.productId === productId)?.stock || 0;
+    setCart(prev => prev.map(item => {
+      if (item.productId === productId) {
+        if (quantity > 0 && quantity <= stock) return { ...item, quantitySent: quantity };
+        if (quantity > stock) return { ...item, quantitySent: stock }; // cap at max stock
+      }
+      return item;
+    }));
+  };
+
   const handleSend = async () => {
     if (originBranchId === destBranchId) {
       setErrorMsg("La sucursal de origen y destino no pueden ser la misma.");
@@ -279,7 +290,13 @@ export const TransferSendForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-700">
                     <button onClick={() => updateQuantity(item.productId, -1)} className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded-md transition-colors"><Minus size={12} weight="bold" /></button>
-                    <span className="w-8 text-center font-bold text-sm text-blue-400">{item.quantitySent}</span>
+                    <input 
+                      type="number" 
+                      min={1} 
+                      value={item.quantitySent || ''} 
+                      onChange={(e) => setExactQuantity(item.productId, Number(e.target.value))}
+                      className="w-10 text-center font-bold text-sm text-blue-400 bg-transparent border-none outline-none focus:ring-0 p-0 m-0 custom-number-input"
+                    />
                     <button onClick={() => updateQuantity(item.productId, 1)} className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 rounded-md transition-colors"><Plus size={12} weight="bold" /></button>
                   </div>
                   <button onClick={() => setCart(prev => prev.filter(c => c.productId !== item.productId))} className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-400 bg-slate-900 hover:bg-rose-500/10 rounded-lg border border-slate-700 transition-colors ml-1">
